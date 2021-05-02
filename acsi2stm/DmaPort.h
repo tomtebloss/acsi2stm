@@ -15,15 +15,13 @@
  * along with the program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ACSI_H
-#define ACSI_H
+#ifndef DMA_PORT_H
+#define DMA_PORT_H
 
+#include "Globals.h"
 #include "Watchdog.h"
 
-// SD card block size
-#define ACSI_BLOCKSIZE 512
-
-struct Acsi {
+struct DmaPort {
   static void init();
   void begin(uint8_t deviceMask = 0);
 
@@ -43,28 +41,17 @@ struct Acsi {
 
   // Wait until the bus is ready.
   // Uses input pull-down to detect that the ST is actually powered on.
-  static void waitBusReady();
+  void waitBusReady();
 
   // Wait for a command on the bus.
   //
-  // The mask is the device bit mask. Set bits 0 to 7 to receive commands for the corresponding device id.
-  // Bits set to 0 will ignore commands for the corresponding devices.
-  //
-  // This function never times out and never fails.
+  // This function never never fails but may trigger the watchdog.
   // Returns the command byte. You can use cmdDeviceId and cmdCommand to parse it.
-  static uint8_t waitCommand(uint8_t mask);
-  uint8_t waitCommand() {
-    return waitCommand(deviceMask);
-  }
+  uint8_t waitCommand();
 
   // Returns the device ID for a given command byte.
   static uint8_t cmdDeviceId(uint8_t cmd) {
     return cmd >> 5;
-  }
-
-  // Returns the actual command for a given command byte.
-  static uint8_t cmdCommand(uint8_t cmd) {
-    return cmd & 0b00011111;
   }
 
   // Read bytes using the IRQ/CS method.
@@ -82,11 +69,25 @@ struct Acsi {
 
   // Read bytes using the DRQ/ACK method.
   // count must be a multiple of 16.
-  static void readDma(uint8_t *bytes, int count);
+  static void read(uint8_t *bytes, int count);
+
+  // Read to dataBuf.
+  void read(int count = ACSI_BLOCKSIZE) {
+    read(dataBuf, count);
+  }
 
   // Send bytes using the DRQ/ACK method.
   // count must be a multiple of 16.
-  static void sendDma(const uint8_t *bytes, int count);
+  static void send(const uint8_t *bytes, int count);
+  
+  // Send data in dataBuf.
+  void send(int count = ACSI_BLOCKSIZE) {
+    send(dataBuf, count);
+  }
+
+  Watchdog watchdog;
+
+  uint8_t dataBuf[ACSI_BLOCKSIZE];
 protected:
   // Low level pin manipulation methods
   static void releaseRq();

@@ -1,0 +1,258 @@
+-----------------------
+ACSI2STM SD bridge v2X1
+-----------------------
+
+Initializing the ACSI bridge ...
+Reloading SD cards
+ACSI device 0:ACSI2STM SD0 F16  30G /|\
+    Has drive A
+ACSI device 1:No SD card
+ACSI device 2:No SD card
+ACSI device 3:No SD card
+ACSI device 4:No SD card
+1 SD cards found
+
+Waiting for the ACSI bus
+
+--- Ready to go ---
+
+[+8][<0][<0][<0][<1][<0]
+Read dev=0 lun=0 block=0 count=1 mod=0
+Reloading SD cards
+Read SD0 block=0 count=1
+Overlaying boot sector on device 0
+DMA send (512 bytes): 48 E7 FF FE 41 FA 1 50 8F 10 EA F 41 FA 1 59 [...] OK
+Success
+[>0]
+[+8][<E0][<0][<0][<3][<0]
+Read dev=0 lun=7 block=0 count=3 mod=0
+Read driver block=0 count=3
+DMA send (512 bytes): 41 FA 3 BC 8F 10 2F 3C 0 0 4 4 48 7A FF F2 [...] OK
+DMA send (512 bytes): 0 20 61 0 FE 94 4A 0 66 10 D8 BC 0 0 40 0 [...] OK
+DMA send (512 bytes): 0 0 0 0 FE 94 4A 0 66 10 D8 BC 0 0 40 0 [...] OK
+Success
+[>0]
+[+8][<F0][<0][<1][<1][<0]
+Read dev=0 lun=7 block=1048577 count=1 mod=0
+Read floppy info
+Reloading SD cards
+DMA send (512 bytes): 1 0 A3 82 13 E4 0 0 0 0 2 0 0 2 4 0 [...] OK
+Success
+[>0]
+[+8][<A0][<0][<0][<1][<0]
+Read dev=0 lun=5 block=0 count=1 mod=0
+Reloading SD cards
+Read SD0 block=0 count=1
+DMA send (512 bytes): 60 1E FF FE 41 FA 1 50 8F 10 EA F 41 FA 1 59 [...] OK
+Success
+[>0]
+[+8][<0][<0][<2][<8][<0]
+Read dev=0 lun=0 block=2 count=8 mod=0
+Read SD0 block=2 count=8
+DMA send (512 bytes): 60 1A 0 0 0 DC 0 0 D 44 0 0 C 34 0 0 [...] OK
+DMA send (512 bytes): 80 E 7 88 30 3C 0 8 48 40 80 6 5 88 61 0 [...] OK
+DMA send (512 bytes): 50 1 86 C9 BE 2 FD 78 A0 AA 80 EA A2 AC 1 3A [...] OK
+DMA send (512 bytes): 9 C7 61 0 F8 1A 4C DF 78 C0 80 D0 1 28 A0 AC [...] OK
+DMA send (512 bytes): 66 2C 80 8 1 2 C0 E0 3 24 4A 28 E0 3C 1 1E [...] OK
+DMA send (512 bytes): 40 0 1A 26 0 90 81 80 C6 80 66 14 C 13 7A 4 [...] OK
+DMA send (512 bytes): 7C 20 3C 0 0 0 8A 80 E 1 56 80 E 1 6E 86 [...] OK
+DMA send (512 bytes): E 99 1C 9F 38 9F 5A 97 7C 1 2 C3 33 2D 9C 28 [...] OK
+Success
+[>0]
+[+12][<0][<0][<0][<38][<0]
+DMA send (56 bytes): 0 80 1 0 1F 0 0 0 41 43 53 49 32 53 54 4D [...] OK
+Success
+[>0]
+[+8][<1F][<FF][<FF][<1][<0]
+Read dev=0 lun=0 block=2097151 count=1 mod=0
+Read SD0 block=2097151 count=1
+DMA send (512 bytes): 0 70 43 C1 80 0 C 1C 0 0 3 20 F1 5D 5B 30 [...] OK
+Success
+[>0]
+[+8][<0][<0][<0][<1][<0]
+Read dev=0 lun=0 block=0 count=1 mod=0
+Reloading SD cards
+Read SD0 block=0 count=1
+Overlaying boot sector on device 0
+DMA send (512 bytes): 48 E7 FF FE 41 FA 1 50 8F 10 EA F 41 FA 1 59 [...] OK
+Success
+[>0]
+[+8][<0][<8][<0][<1][<0]
+Read dev=0 lun=0 block=2048 count=1 mod=0
+Read SD0 block=2048 count=1
+DMA send (512 bytes): EB 3C 90 6D 6B 66 73 2E 66 61 74 0 2 10 10 0 [...] OK
+Success
+[>0]
+[+28][<0][<0][<0][<1][<0]
+Read dev=1 lun=0 block=0 count=1 mod=0
+Reloading SD cards
+Read SD1 block=0 count=1
+Error 521
+[>5]
+[+28][<0][<0][<0][<1][<0]
+Read dev=1 lun=0 block=0 count=1 mod=0
+Reloading SD cards
+Read SD1 block=0 count=1
+Error 521
+[>5]
+[+48][<0][<0][<0][<1][<0]
+Read dev=2 lun=0 block=0 count=1 mod=0
+Reloading SD cards
+Read SD2 block=0 count=1
+Error 521
+[>5]
+[+48][<0][<0][<0][<1][<0]
+Read dev=2 lun=0 block=0 count=1 mod=0
+Reloading SD cards
+Read SD2 block=0 count=1
+Error 521
+[>5]
+[+68][<0][<0][<0][<1][<0]
+Read dev=3 lun=0 block=0 count=1 mod=0
+Reloading SD cards
+Read SD3 block=0 count=1
+Error 521
+[>5]
+[+68][<0][<0][<0][<1][<0]
+Read dev=3 lun=0 block=0 count=1 mod=0
+Reloading SD cards
+Read SD3 block=0 count=1
+Error 521
+[>5]
+[+88][<0][<0][<0][<1][<0]
+Read dev=4 lun=0 block=0 count=1 mod=0
+Reloading SD cards
+Read SD4 block=0 count=1
+Error 521
+[>5]
+[+88][<0][<0][<0][<1][<0]
+Read dev=4 lun=0 block=0 count=1 mod=0
+Reloading SD cards
+Read SD4 block=0 count=1
+Error 521
+[>5]
+[+8][<0][<A][<10][<1][<0]
+Read dev=0 lun=0 block=2576 count=1 mod=0
+Read SD0 block=2576 count=1
+DMA send (512 bytes): 41 43 53 49 32 53 54 4D 20 20 20 10 0 0 58 85 [...] OK
+Success
+[>0]
+[+8][<0][<F][<F0][<1][<0]
+Read dev=0 lun=0 block=4080 count=1 mod=0
+Read SD0 block=4080 count=1
+DMA send (512 bytes): 2E 20 20 20 20 20 20 20 20 20 20 10 0 64 37 83 [...] OK
+Success
+[>0]
+[+8][<0][<10][<0][<1][<0]
+Read dev=0 lun=0 block=4096 count=1 mod=0
+Read SD0 block=4096 count=1
+DMA send (512 bytes): 60 1A 0 0 5E F4 0 0 8 6A 0 0 44 CE 0 0 [...] OK
+Success
+[>0]
+[+8][<0][<10][<1][<F][<0]
+Read dev=0 lun=0 block=4097 count=15 mod=0
+Read SD0 block=4097 count=15
+DMA send (512 bytes): 67 0 1 0 48 E7 7F E0 2F B 3F 0 2F E 21 4F [...] OK
+DMA send (512 bytes): F ED 30 5 72 20 1C C1 51 C8 FF FC 26 4E 7E 0 [...] OK
+DMA send (512 bytes): 72 E0 B2 80 66 14 70 28 3F 0 74 2 3F 2 72 3 [...] OK
+DMA send (512 bytes): 0 20 42 40 41 EA 0 E5 4E BA 24 24 4A 80 66 1C [...] OK
+DMA send (512 bytes): 65 10 B6 7C 0 10 65 0 1 74 B6 7C 0 13 62 0 [...] OK
+DMA send (512 bytes): 0 1 0 6 66 16 70 3 D0 44 4E BA 4F 9C 20 6F [...] OK
+DMA send (512 bytes): B2 70 20 0 63 1C 2 51 FF E0 6 51 0 21 30 11 [...] OK
+DMA send (512 bytes): 60 5A 30 3 E5 48 20 72 0 0 22 8 67 4C 26 68 [...] OK
+DMA send (512 bytes): 30 C2 72 2 D2 6A 0 E 74 0 34 1 D4 82 72 0 [...] OK
+DMA send (512 bytes): 1 62 0 E 66 8 1C 3C 0 FD 60 0 0 7C C 6A [...] OK
+DMA send (512 bytes): 0 6 3F 0 72 2 3F 1 74 3 3F 2 4E BA EB A [...] OK
+DMA send (512 bytes): 10 28 0 19 E1 A9 D5 C1 60 AA 20 7 4C DF C F8 [...] OK
+DMA send (512 bytes): 78 1 60 2 78 2 91 C8 B8 7C 0 2 66 4 70 1 [...] OK
+DMA send (512 bytes): 0 F 0 2 60 6 3F 7C F0 0 0 2 3C 5 CC 6A [...] OK
+DMA send (512 bytes): 7F 78 1A 93 60 4 1A AE 0 1 70 1 C0 43 67 6 [...] OK
+Success
+[>0]
+[+8][<0][<9][<10][<1][<0]
+Read dev=0 lun=0 block=2320 count=1 mod=0
+Read SD0 block=2320 count=1
+DMA send (512 bytes): F8 FF FF FF 63 0 FF FF 5 0 6 0 7 0 8 0 [...] OK
+Success
+[>0]
+[+8][<0][<10][<10][<20][<0]
+Read dev=0 lun=0 block=4112 count=32 mod=0
+Read SD0 block=4112 count=32
+DMA send (512 bytes): 9E 46 42 41 20 4A 30 5 4E BA FB 20 28 48 60 A8 [...] OK
+DMA send (512 bytes): 0 10 DA 81 70 0 30 2F 0 E DE 80 4A 46 67 C [...] OK
+DMA send (512 bytes): 20 A 67 40 20 4A 30 3 4E BA ED 22 2A 0 6A 2 [...] OK
+DMA send (512 bytes): 0 14 28 15 70 FF B0 84 66 2 78 0 20 4 20 4E [...] OK
+DMA send (512 bytes): FF FF 20 4B 4F EF 0 14 4C DF 2C 18 4E 75 48 E7 [...] OK
+DMA send (512 bytes): 0 1C 43 D7 20 6A 0 14 4E BA 10 5C 3F 3 4E BA [...] OK
+DMA send (512 bytes): 26 28 0 1C 20 3 24 68 0 18 20 4A 4E BA 11 9E [...] OK
+DMA send (512 bytes): 70 CF 60 12 22 4A 20 4C 4E BA FB 30 33 FC 0 1 [...] OK
+DMA send (512 bytes): C0 2C 0 B 67 6 36 BC 41 FF 60 10 70 8 C0 2C [...] OK
+DMA send (512 bytes): 60 0 1 42 20 3C 42 44 4F 53 60 0 1 38 20 3C [...] OK
+DMA send (512 bytes): 4E BA 9 AA 93 C9 70 1 20 6A 0 18 4E BA 0 88 [...] OK
+DMA send (512 bytes): 32 28 0 6 43 F9 0 0 AC C 10 31 10 0 20 53 [...] OK
+DMA send (512 bytes): BA 7C 2 0 6D EC 22 78 4 C6 43 E9 0 2B 41 EF [...] OK
+DMA send (512 bytes): 20 8 66 E0 70 0 58 4F 26 5F 24 5F 4E 75 2F A [...] OK
+DMA send (512 bytes): 0 90 3F 3 2F 2F 0 48 4E BA 6 7E 5C 4F 2A 0 [...] OK
+DMA send (512 bytes): 2A 3 14 2B 0 1D E4 A5 32 2A 0 24 67 1A B6 AA [...] OK
+DMA send (512 bytes): 30 4 E5 48 D0 44 D0 40 22 30 0 C4 6A 6 15 81 [...] OK
+DMA send (512 bytes): 4E 75 52 40 41 E8 0 A B0 7C 0 5E 6D EC 70 FF [...] OK
+DMA send (512 bytes): 0 DE B8 3C 0 5D 67 0 0 D6 B8 3C 0 7C 67 0 [...] OK
+DMA send (512 bytes): 67 18 B0 3C 0 2A 67 12 B0 3C 0 5C 67 C B0 3C [...] OK
+DMA send (512 bytes): 3F 1 4E BA F8 28 54 4F 52 43 B6 7C 0 5E 6D DE [...] OK
+DMA send (512 bytes): 66 2 54 4D 24 4D 60 C C 12 0 5C 66 4 4B EA [...] OK
+DMA send (512 bytes): 66 F2 42 1D 28 4B 4A 44 67 6 B8 7C 0 3 66 32 [...] OK
+DMA send (512 bytes): 2A 0 20 4D 60 1E 42 43 16 18 67 62 B6 7C 0 1 [...] OK
+DMA send (512 bytes): 66 F0 70 D8 60 5A 52 83 C6 BC FF FF FF FE B6 AA [...] OK
+DMA send (512 bytes): FF FE 4A 83 6F 3A 4E BA 4 2 26 48 20 B 66 4 [...] OK
+DMA send (512 bytes): 64 32 4E BA 0 56 26 38 4 BA D6 BC 0 0 3 20 [...] OK
+DMA send (512 bytes): 0 0 77 68 4C DF 1C 0 4E 75 48 E7 0 38 91 C8 [...] OK
+DMA send (512 bytes): 20 9 66 C0 4E BA FC 46 24 5F 4E 75 3F 3 36 0 [...] OK
+DMA send (512 bytes): 3F 4 36 0 38 1 42 41 4E BA FE B4 3F 4 3F 3 [...] OK
+DMA send (512 bytes): FF 2C 36 1F 4E 75 20 79 0 0 AB EE 22 50 10 29 [...] OK
+DMA send (512 bytes): 32 4 30 3 4E BA FE A6 42 46 60 40 72 23 30 3 [...] OK
+Success
+[>0]
+[+8][<0][<10][<30][<3][<0]
+Read dev=0 lun=0 block=4144 count=3 mod=0
+Read SD0 block=4144 count=3
+DMA send (512 bytes): 4 B0 0 0 0 0 4 B0 0 0 0 0 4 B0 0 0 [...] OK
+DMA send (512 bytes): 20 2F 20 49 53 4F 20 39 32 39 33 3A 31 39 38 37 [...] OK
+DMA send (512 bytes): 7B 7C 7D 7E 80 8E 8F 90 92 99 9A 9B 9C 9D A5 A6 [...] OK
+Success
+[>0]
+[+8][<0][<10][<33][<1][<0]
+Read dev=0 lun=0 block=4147 count=1 mod=0
+Read SD0 block=4147 count=1
+DMA send (512 bytes): 6D 61 6C 6C 3A D A 0 3 20 0 0 0 0 0 0 [...] OK
+Success
+[>0]
+[+8][<0][<10][<34][<1][<0]
+Read dev=0 lun=0 block=4148 count=1 mod=0
+Read SD0 block=4148 count=1
+DMA send (512 bytes): 18 1 1 9A AC 7C 1 16 7E 28 6 8 90 6 38 14 [...] OK
+Success
+[>0]
+[+8][<0][<9][<10][<1][<0]
+Read dev=0 lun=0 block=2320 count=1 mod=0
+Read SD0 block=2320 count=1
+DMA send (512 bytes): F8 FF FF FF 63 0 FF FF 5 0 6 0 7 0 8 0 [...] OK
+Success
+[>0]
+[+8][<0][<8][<0][<1][<0]
+Read dev=0 lun=0 block=2048 count=1 mod=0
+Read SD0 block=2048 count=1
+DMA send (512 bytes): EB 3C 90 6D 6B 66 73 2E 66 61 74 0 2 10 10 0 [...] OK
+Success
+[>0]
+[+8][<0][<A][<10][<1][<0]
+Read dev=0 lun=0 block=2576 count=1 mod=0
+Read SD0 block=2576 count=1
+DMA send (512 bytes): 41 43 53 49 32 53 54 4D 20 20 20 10 0 0 58 85 [...] OK
+Success
+[>0]
+[+8][<0][<F][<F0][<1][<0]
+Read dev=0 lun=0 block=4080 count=1 mod=0
+Read SD0 block=4080 count=1
+DMA send (512 bytes): 2E 20 20 20 20 20 20 20 20 20 20 10 0 64 37 83 [...] OK
+Success
+[>0]

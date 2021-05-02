@@ -18,22 +18,29 @@
 #ifndef WATCHDOG_H
 #define WATCHDOG_H
 
+#include "acsi2stm.h"
 #include <Arduino.h>
 
 #define WATCHDOG_TIMER Timer2
 
 // Timer-based watchdog
 struct Watchdog {
-  void begin(int millis = 2000);
+  void begin(int millis = WATCHDOG_TIMEOUT);
   void feed() {
+#if WATCHDOG_TIMEOUT
     WATCHDOG_TIMER.setCount(0);
+#endif
   }
   void pause() {
+#if WATCHDOG_TIMEOUT
     WATCHDOG_TIMER.pause();
+#endif
   }
   void resume() {
+#if WATCHDOG_TIMEOUT
     feed();
     WATCHDOG_TIMER.resume();
+#endif
   }
 protected:
   static void trigger();

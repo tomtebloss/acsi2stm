@@ -19,6 +19,7 @@
 #include <libmaple/iwdg.h>
 
 void Watchdog::begin(int millis) {
+#if WATCHDOG_TIMEOUT
   WATCHDOG_TIMER.pause();
   WATCHDOG_TIMER.setMode(TIMER_CH1, TIMER_OUTPUTCOMPARE);
   WATCHDOG_TIMER.setPrescaleFactor(36000);
@@ -28,15 +29,18 @@ void Watchdog::begin(int millis) {
   WATCHDOG_TIMER.setCount(0);
   WATCHDOG_TIMER.refresh();
   WATCHDOG_TIMER.resume();
+#endif
 }
 
 void Watchdog::trigger() {
+#if WATCHDOG_TIMEOUT
   WATCHDOG_TIMER.pause();
 
   // Reset the whole STM32
   iwdg_init(IWDG_PRE_4, 1);
   iwdg_feed();
   for(;;);
+#endif
 }
 
 // vim: ts=2 sw=2 sts=2 et

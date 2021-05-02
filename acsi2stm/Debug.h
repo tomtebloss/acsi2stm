@@ -14,6 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with the program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #ifndef DEBUG_H
 #define DEBUG_H
 
@@ -46,7 +47,8 @@ inline void acsiDbgln(T txt, F fmt) {
   Serial.flush();
 }
 
-static void acsiDbgDump(const uint8_t *data, int size, int maxSize = ACSI_DUMP_LEN) {
+static void acsiDbgDump(const void *data_, int size, int maxSize = ACSI_DUMP_LEN) {
+  const uint8_t *data = (const uint8_t *)data_;
   acsiDbg('(');
   acsiDbg(size);
   acsiDbg(" bytes)");
@@ -67,7 +69,7 @@ static void acsiDbgDump(const uint8_t *data, int size, int maxSize = ACSI_DUMP_L
   }
 }
 
-static void acsiDbgDumpln(const uint8_t *data, int size, int maxSize = ACSI_DUMP_LEN) {
+static void acsiDbgDumpln(const void *data, int size, int maxSize = ACSI_DUMP_LEN) {
   acsiDbgDump(data, size, maxSize);
   acsiDbgln("");
 }
@@ -88,16 +90,16 @@ template<typename T, typename F>
 inline void acsiDbgln(T txt, F fmt) {
 }
 
-static void acsiDbgDump(const uint8_t *, int) {
+static void acsiDbgDump(const void *, int) {
 }
 
-static void acsiDbgDump(const uint8_t *, int, int) {
+static void acsiDbgDump(const void *, int, int) {
 }
 
-static void acsiDbgDumpln(const uint8_t *, int) {
+static void acsiDbgDumpln(const void *, int) {
 }
 
-static void acsiDbgDumpln(const uint8_t *, int, int) {
+static void acsiDbgDumpln(const void *, int, int) {
 }
 #endif
 
@@ -113,11 +115,11 @@ inline void acsiVerboseln(T... txt) {
   acsiDbgln(txt...);
 }
 
-static void acsiVerboseDump(const uint8_t *data, int size, int maxSize = ACSI_DUMP_LEN) {
+static void acsiVerboseDump(const void *data, int size, int maxSize = ACSI_DUMP_LEN) {
   acsiDbgDump(data, size, maxSize);
 }
 
-static void acsiVerboseDumpln(const uint8_t *data, int size, int maxSize = ACSI_DUMP_LEN) {
+static void acsiVerboseDumpln(const void *data, int size, int maxSize = ACSI_DUMP_LEN) {
   acsiDbgDumpln(data, size, maxSize);
 }
 #else
@@ -129,11 +131,33 @@ template<typename ...T>
 inline void acsiVerboseln(T... txt) {
 }
 
-static void acsiVerboseDump(const uint8_t *data, int size, int maxSize = ACSI_DUMP_LEN) {
+static void acsiVerboseDump(const void *data, int size, int maxSize = ACSI_DUMP_LEN) {
 }
 
-static void acsiVerboseDumpln(const uint8_t *data, int size, int maxSize = ACSI_DUMP_LEN) {
+static void acsiVerboseDumpln(const void *data, int size, int maxSize = ACSI_DUMP_LEN) {
 }
 #endif
+
+template<typename T>
+inline void acsiDbgl(T txt) {
+  acsiDbgln(txt);
+}
+
+template<typename T, typename... More>
+inline void acsiDbgl(T txt, More... more) {
+  acsiDbg(txt);
+  acsiDbgl(more...);
+}
+
+template<typename T>
+inline void acsiVerbosel(T txt) {
+  acsiVerboseln(txt);
+}
+
+template<typename T, typename... More>
+inline void acsiVerbosel(T txt, More... more) {
+  acsiVerbose(txt);
+  acsiVerbosel(more...);
+}
 
 #endif

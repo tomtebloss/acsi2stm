@@ -30,7 +30,7 @@
 #define ACK_MASK 0b0001000000000000
 
 // Timer
-#define ACSI_TIMER TIMER1_BASE
+#define DMA_TIMER TIMER1_BASE
 
 /* How ACSI DMA is handled (DRQ/ACK pulses and data sampling):
 
@@ -98,9 +98,6 @@ these signals. Data flow:
    by the STM32 DMA engine and memory to memory copies cannot be triggered by
    a timer, so it has to be a memory to peripheral copy. Any unused peripheral
    register can be used for this task.
- * If multiple ACK signals are received, this can be detected by having an incorrect
-   counter value. This avoids silent data corruption in case of problems. This check is
-   only done if ACSI_CAREFUL_DMA is enabled.
 
 
 DMA read process
@@ -118,7 +115,6 @@ DMA byte read process:
  * Set Timer1 counter to 0, this will pull DRQ low.
  * When ACK goes low, Timer1 counts to 1.
  * Timer1 counting will set DRQ high.
- * Wait until ACK goes high.
 
 DMA block transfer stop process:
 
@@ -142,7 +138,6 @@ DMA byte write process:
  * Timer1 counting will set DRQ high.
  * Timer1 counting will trigger the STM32 DMA CH6.
  * The STM32 DMA will copy GPIOB to Timer1 CH1 compare value.
- * Wait until ACK goes high.
  * Read Timer1 CH1 compare value to get the data byte.
 
 DMA block transfer stop process:
@@ -157,33 +152,66 @@ DMA block transfer stop process:
 #include "Acsi.h"
 #include <libmaple/dma.h>
 
-void Acsi::begin(uint8_t mask) {
+#ifdef ACTIVITY_LED
+static inline void ledOn() {
+  GPIOC->regs->BSRR = 1 << (13 + 16);
+}
+static inline void ledOff() {
+  GPIOC->regs->BSRR = 1 << 13;
+}
+static inline void ledInit() {
+  pinMode(ACTIVITY_LED, OUTPUT);
+  ledOn();
+}
+#else
+static inline void ledOn() {
+}
+static inline void ledOff() {
+}
+static inline void ledInit() {
+}
+#endif
+
+void DmaPort::begin(uint8_t mask) {
+  // Initialize the watchdog timer
+  watchdog.begin();
+
   deviceMask = mask;
   init();
 }
 
-void Acsi::init() {
+void DmaPort::init() {
+  ledInit();
   setupDrqTimer();
   setupAckDmaTransfer();
   setupGpio();
 }
 
-bool Acsi::idle() {
+bool DmaPort::idle() {
   return (GPIOA->regs->IDR & (IRQ_MASK | DRQ_MASK | ACK_MASK)) == IRQ_MASK | DRQ_MASK | ACK_MASK;
 }
 
-void Acsi::waitBusReady() {
+void DmaPort::waitBusReady() {
+  watchdog.pause();
+
   pinMode(CS, INPUT_PULLDOWN);
   pinMode(A1, INPUT_PULLDOWN);
 
   while((((GPIOB->regs->IDR) | ~(A1_MASK | CS_MASK)) != ~0) || !idle());
+  delay(100); // Wait for the bus to stabilize
 
   pinMode(CS, INPUT);
   pinMode(A1, INPUT);
+
+  watchdog.resume();
 }
 
-uint8_t Acsi::waitCommand(uint8_t mask) {
+uint8_t DmaPort::waitCommand() {
   uint16_t port;
+
+  ledOff();
+
+  watchdog.pause();
 
   // Disable systick that introduces jitter.
   systick_disable();
@@ -194,13 +222,17 @@ uint8_t Acsi::waitCommand(uint8_t mask) {
     // This is done in a single operation because the
     // CS pulse is fast (250ns)
     while((port = GPIOB->regs->IDR) & (A1_MASK | CS_MASK));
-  } while(!((1 << (port >> (8+5))) & mask) || !idle()); // Check the device ID and Ack line
-
-  // If CS never goes up before the watchdog triggers, the cable is probably disconnected.
-  while(!readCs());
+  } while(!((1 << (port >> (8+5))) & deviceMask)); // Check the device ID and Ack line
 
   // Restore systick
   systick_enable();
+
+  watchdog.resume();
+
+  ledOn();
+
+  // If CS never goes up before the watchdog triggers, the cable is probably disconnected.
+  while(!readCs() || !idle());
 
   uint8_t byte = (uint8_t)(port >> 8);
 
@@ -211,24 +243,15 @@ uint8_t Acsi::waitCommand(uint8_t mask) {
   return byte;
 }
 
-void Acsi::readIrq(uint8_t *bytes, int count) {
-  // Disable systick that introduces jitter.
-  systick_disable();
-
+void DmaPort::readIrq(uint8_t *bytes, int count) {
   while(count > 0) {
     *bytes = readIrq();
     ++bytes;
     --count;
   }
-
-  // If CS never goes up before the watchdog triggers, the cable is probably disconnected.
-  while(!readCs());
-
-  // Restore systick
-  systick_enable();
 }
 
-uint8_t Acsi::readIrq() {
+uint8_t DmaPort::readIrq() {
   uint16_t b;
 
   acsiVerbose("[<");
@@ -243,6 +266,9 @@ uint8_t Acsi::readIrq() {
   // Restore systick
   systick_enable();
 
+  // If CS never goes up before the watchdog triggers, the cable is probably disconnected.
+  while(!readCs() || !idle());
+
   uint8_t byte = (uint8_t)(b >> 8);
 
   acsiVerbose(byte,HEX);
@@ -251,7 +277,7 @@ uint8_t Acsi::readIrq() {
   return byte;
 }
 
-void Acsi::sendIrq(const uint8_t *bytes, int count) {
+void DmaPort::sendIrq(const uint8_t *bytes, int count) {
   while(count > 0) {
     sendIrq(*bytes);
     ++bytes;
@@ -259,10 +285,10 @@ void Acsi::sendIrq(const uint8_t *bytes, int count) {
   }
 }
 
-void Acsi::sendIrq(uint8_t byte) {
+void DmaPort::sendIrq(uint8_t byte) {
   acsiVerbose("[>");
   acsiVerbose(byte,HEX);
-  acsiVerbose(']');
+  acsiVerboseln(']');
 
   // Disable systick that introduces jitter.
   systick_disable();
@@ -279,7 +305,7 @@ void Acsi::sendIrq(uint8_t byte) {
 
 }
 
-void Acsi::readDma(uint8_t *bytes, int count) {
+void DmaPort::read(uint8_t *bytes, int count) {
   // Disable systick that introduces jitter.
   systick_disable();
 
@@ -290,37 +316,37 @@ void Acsi::readDma(uint8_t *bytes, int count) {
   // Unroll for speed
   int i;
   for(i = 0; i <= count - 16; i += 16) {
-#define ACSI_READ_BYTE(b) do { \
-      ACSI_TIMER->CNT = 0; \
-      while(ACSI_TIMER->CNT == 0); \
-      bytes[b] = (uint8_t)(ACSI_TIMER->CCR1 >> 8); \
+#define DMA_READ_BYTE(b) do { \
+      DMA_TIMER->CNT = 0; \
+      while(DMA_TIMER->CNT == 0); \
+      bytes[b] = (uint8_t)(DMA_TIMER->CCR1 >> 8); \
     } while(0)
-    ACSI_READ_BYTE(0);
-    ACSI_READ_BYTE(1);
-    ACSI_READ_BYTE(2);
-    ACSI_READ_BYTE(3);
-    ACSI_READ_BYTE(4);
-    ACSI_READ_BYTE(5);
-    ACSI_READ_BYTE(6);
-    ACSI_READ_BYTE(7);
-    ACSI_READ_BYTE(8);
-    ACSI_READ_BYTE(9);
-    ACSI_READ_BYTE(10);
-    ACSI_READ_BYTE(11);
-    ACSI_READ_BYTE(12);
-    ACSI_READ_BYTE(13);
-    ACSI_READ_BYTE(14);
-    ACSI_READ_BYTE(15);
+    DMA_READ_BYTE(0);
+    DMA_READ_BYTE(1);
+    DMA_READ_BYTE(2);
+    DMA_READ_BYTE(3);
+    DMA_READ_BYTE(4);
+    DMA_READ_BYTE(5);
+    DMA_READ_BYTE(6);
+    DMA_READ_BYTE(7);
+    DMA_READ_BYTE(8);
+    DMA_READ_BYTE(9);
+    DMA_READ_BYTE(10);
+    DMA_READ_BYTE(11);
+    DMA_READ_BYTE(12);
+    DMA_READ_BYTE(13);
+    DMA_READ_BYTE(14);
+    DMA_READ_BYTE(15);
     bytes += 16;
   }
 
   while(i < count) {
-    ACSI_READ_BYTE(0);
+    DMA_READ_BYTE(0);
     ++i;
     ++bytes;
   }
 
-#undef ACSI_READ_BYTE
+#undef DMA_READ_BYTE
 
   releaseBus();
 
@@ -331,7 +357,7 @@ void Acsi::readDma(uint8_t *bytes, int count) {
   acsiVerboseln(" OK");
 }
 
-void Acsi::sendDma(const uint8_t *bytes, int count) {
+void DmaPort::send(const uint8_t *bytes, int count) {
   acsiVerbose("DMA send ");
   acsiVerboseDump(&bytes[0], count);
 
@@ -344,37 +370,37 @@ void Acsi::sendDma(const uint8_t *bytes, int count) {
   // Unroll for speed
   int i;
   for(i = 0; i <= count - 16; i += 16) {
-#define ACSI_SEND_BYTE(b) do { \
+#define DMA_SEND_BYTE(b) do { \
       writeData(bytes[b]); \
-      ACSI_TIMER->CNT = 0; \
-      while(ACSI_TIMER->CNT == 0); \
+      DMA_TIMER->CNT = 0; \
+      while(DMA_TIMER->CNT == 0); \
     } while(0)
-    ACSI_SEND_BYTE(0);
-    ACSI_SEND_BYTE(1);
-    ACSI_SEND_BYTE(2);
-    ACSI_SEND_BYTE(3);
-    ACSI_SEND_BYTE(4);
-    ACSI_SEND_BYTE(5);
-    ACSI_SEND_BYTE(6);
-    ACSI_SEND_BYTE(7);
-    ACSI_SEND_BYTE(8);
-    ACSI_SEND_BYTE(9);
-    ACSI_SEND_BYTE(10);
-    ACSI_SEND_BYTE(11);
-    ACSI_SEND_BYTE(12);
-    ACSI_SEND_BYTE(13);
-    ACSI_SEND_BYTE(14);
-    ACSI_SEND_BYTE(15);
+    DMA_SEND_BYTE(0);
+    DMA_SEND_BYTE(1);
+    DMA_SEND_BYTE(2);
+    DMA_SEND_BYTE(3);
+    DMA_SEND_BYTE(4);
+    DMA_SEND_BYTE(5);
+    DMA_SEND_BYTE(6);
+    DMA_SEND_BYTE(7);
+    DMA_SEND_BYTE(8);
+    DMA_SEND_BYTE(9);
+    DMA_SEND_BYTE(10);
+    DMA_SEND_BYTE(11);
+    DMA_SEND_BYTE(12);
+    DMA_SEND_BYTE(13);
+    DMA_SEND_BYTE(14);
+    DMA_SEND_BYTE(15);
     bytes += 16;
   }
 
   while(i < count) {
-    ACSI_SEND_BYTE(0);
+    DMA_SEND_BYTE(0);
     ++i;
     ++bytes;
   }
 
-#undef ACSI_SEND_BYTE
+#undef DMA_SEND_BYTE
   releaseBus();
 
   // Restore systick
@@ -383,20 +409,20 @@ void Acsi::sendDma(const uint8_t *bytes, int count) {
   acsiVerboseln(" OK");
 }
 
-void Acsi::releaseRq() {
+void DmaPort::releaseRq() {
   GPIOA->regs->CRH = 0x44444BB4; // Set ACK, IRQ and DRQ as inputs
 }
 
-void Acsi::releaseDataBus() {
+void DmaPort::releaseDataBus() {
   GPIOB->regs->CRH = 0x44444444; // Set PORTB[8:15] to input
 }
 
-void Acsi::releaseBus() {
+void DmaPort::releaseBus() {
   releaseDataBus();
   releaseRq();
 }
 
-void Acsi::acquireDrq() {
+void DmaPort::acquireDrq() {
   // Set DRQ to high using timer PWM
   TIMER1_BASE->CNT = 2;
 
@@ -407,50 +433,51 @@ void Acsi::acquireDrq() {
   GPIOA->regs->CRH = 0x4444BBB4;
 }
 
-void Acsi::acquireDataBus() {
+void DmaPort::acquireDataBus() {
   GPIOB->regs->CRH = 0x33333333; // Set PORTB[8:15] to 50MHz push-pull output
 }
 
-bool Acsi::readCs() {
+bool DmaPort::readCs() {
   return GPIOB->regs->IDR & CS_MASK;
 }
 
-bool Acsi::readAck() {
+bool DmaPort::readAck() {
   return GPIOA->regs->IDR & ACK_MASK;
 }
 
-void Acsi::pullIrq() {
+void DmaPort::pullIrq() {
   GPIOA->regs->CRH = 0x44444BB3;
 }
 
-void Acsi::writeData(uint8_t byte) {
+void DmaPort::writeData(uint8_t byte) {
   GPIOB->regs->ODR = ((int)byte) << 8;
 }
 
-void Acsi::setupDrqTimer() {
-  ACSI_TIMER->CR1 = TIMER_CR1_OPM;
-  ACSI_TIMER->CR2 = 0;
-  ACSI_TIMER->SMCR = TIMER_SMCR_ETP | TIMER_SMCR_TS_ETRF | TIMER_SMCR_SMS_EXTERNAL;
-  ACSI_TIMER->PSC = 0; // Prescaler
-  ACSI_TIMER->ARR = 65535; // Overflow (0 = counter stopped)
-  ACSI_TIMER->DIER = TIMER_DIER_CC3DE;
-  ACSI_TIMER->CCMR1 = 0;
-  ACSI_TIMER->CCMR2 = TIMER_CCMR2_OC4M;
-  ACSI_TIMER->CCER = TIMER_CCER_CC4E; // Enable output
-  ACSI_TIMER->EGR = TIMER_EGR_UG;
-  ACSI_TIMER->CCR2 = 65535; // Disable unused CC channel
-  ACSI_TIMER->CCR3 = 1; // Compare value
-  ACSI_TIMER->CCR4 = 1; // Compare value
-  ACSI_TIMER->CNT = 2;
-  ACSI_TIMER->CR1 |= TIMER_CR1_CEN;
+void DmaPort::setupDrqTimer() {
+  DMA_TIMER->CR1 = TIMER_CR1_OPM;
+  DMA_TIMER->CR2 = 0;
+  // Count on DMA ACK pulse
+  DMA_TIMER->SMCR = TIMER_SMCR_ETP | TIMER_SMCR_TS_ETRF | TIMER_SMCR_SMS_EXTERNAL;
+  DMA_TIMER->PSC = 0; // Prescaler
+  DMA_TIMER->ARR = 65535; // Overflow
+  DMA_TIMER->DIER = TIMER_DIER_CC3DE; // Trigger DMA
+  DMA_TIMER->CCMR1 = 0;
+  DMA_TIMER->CCMR2 = TIMER_CCMR2_OC4M;
+  DMA_TIMER->CCER = TIMER_CCER_CC4E; // Enable output on DRQ
+  DMA_TIMER->EGR = TIMER_EGR_UG; // Update the timer
+  DMA_TIMER->CCR2 = 65535; // Disable unused CC channel
+  DMA_TIMER->CCR3 = 1; // Compare value
+  DMA_TIMER->CCR4 = 1; // Compare value
+  DMA_TIMER->CNT = 2;
+  DMA_TIMER->CR1 |= TIMER_CR1_CEN;
 }
 
-void Acsi::setupAckDmaTransfer() {
+void DmaPort::setupAckDmaTransfer() {
   // Setup the DMA engine to copy GPIOB to timer 1 CH1 compare value
   dma_init(DMA1);
   dma_setup_transfer(DMA1,
                      DMA_CH6,
-                     &(ACSI_TIMER->CCR1),
+                     &(DMA_TIMER->CCR1),
                      DMA_SIZE_16BITS,
                      &(GPIOB->regs->IDR),
                      DMA_SIZE_16BITS,
@@ -459,7 +486,7 @@ void Acsi::setupAckDmaTransfer() {
   dma_enable(DMA1, DMA_CH6);
 }
 
-void Acsi::setupGpio() {
+void DmaPort::setupGpio() {
   GPIOA->regs->ODR |= DRQ_MASK;
   releaseBus();
 }
