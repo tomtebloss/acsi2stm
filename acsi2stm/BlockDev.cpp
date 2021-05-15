@@ -16,217 +16,198 @@
  */
 
 #include "BlockDev.h"
+#include "RootDevice.h"
 
-void BlockDev::getDeviceString(char *target) {
-  // Characters:  0123456789012345678901234
-  memcpy(target, "ACSI2STM SD0 RAW   ?M   v" ACSI2STM_VERSION, 29);
-
-  target[11] += deviceId;
-
-  if(!blocks) {
-    memcpy(&target[13], "NO SD CARD", 10);
-    return;
-  }
-
-  uint32_t sz = (blocks + 2047) / 2048;
-  if(sz > 999) {
-    sz = (sz + 1023) / 1024;
-    target[20] = 'G';
-  }
-  if(sz > 999) {
-    sz = (sz + 1023) / 1024;
-    target[20] = 'T';
-  }
-
-  // Write SD card size
-
-  // Add a + symbol if capacity is artificially capped
-  if(!hdImage && card.cardSize() > maxBlocks)
-    target[21] = '+';
-
-  // Add format at the end
-  if(hdImage)
-    memcpy(&target[13], "IMG", 3);
-  else if(fs.fatType() == FAT_TYPE_FAT16)
-    memcpy(&target[13], "F16", 3);
-  else if(fs.fatType() == FAT_TYPE_FAT32)
-    memcpy(&target[13], "F32", 3);
-  else if(fs.fatType() == FAT_TYPE_EXFAT)
-    memcpy(&target[13], "EXF", 3);
-
-  // Roll our own int->string conversion.
-  // Libraries that do this are surprisingly large.
-  for(int i = 19; i >= 17; --i) {
-    if(sz)
-      target[i] = '0' + sz % 10;
-    sz /= 10;
-  }
-
-  // Add the Atari logo if bootable
-  if(bootable) {
-    target[22] = 0x0E;
-    target[23] = 0x0F;
-  }
-}
-
-void BlockDev::eject() {
-  if(hdImage)
-    hdImage.close();
-
-  bootable = false;
-  blocks = 0;
-}
-
-uint32_t BlockDev::serial() {
-  cid_t cid;
-  if(!card.readCID(&cid)) {
-    eject();
-    return 0;
-  }
-  if(!cid.psn)
-    return 1; // Return 1 if the serial is actually 0 to differentiate from an error
-  return cid.psn;
-}
-
-bool BlockDev::begin(int deviceId_, int csPin_, uint32_t maxBlocks_, bool dedicatedSpi_) {
-  deviceId = deviceId_;
-  csPin = csPin_;
+bool BlockDev::begin(RootDevice *root_, uint32_t maxBlocks_) {
+  root = root_;
   maxBlocks = maxBlocks_;
-  dedicatedSpi = dedicatedSpi_;
+  if(root->hdImage)
+    image = &root->hdImage;
+  return init();
+}
 
-  lastErr = STATUS_OK;
+bool BlockDev::begin(AcsiFile *image_, RootDevice *root_) {
+  root = root_;
+  maxBlocks = ~0;
+  image = image_;
+
+  if(image && *image)
+    return init();
+
+  return false;
+}
+
+bool BlockDev::init() {
+  lastErr = AST_OK;
   lastBlock = 0;
   lastSeek = false;
 
-  return initSd();
-}
+  if(image)
+    blocks = image->fileSize() / ACSI_BLOCKSIZE;
+  else
+    blocks = root->card.cardSize();
 
-bool BlockDev::initSd() {
-  eject();
-
-  if(!card.begin(SdSpiConfig(csPin, dedicatedSpi ? DEDICATED_SPI : SHARED_SPI)))
+  if(!blocks) {
+    end();
     return false;
+  }
 
-  blocks = card.cardSize();
   if(blocks > maxBlocks)
     blocks = maxBlocks;
 
+#if ACSI_DRIVER && ACSI_BOOT_OVERLAY
   uint8_t bootSector[ACSI_BLOCKSIZE];
-
-  // Try opening a filesystem
-  if(fs.begin(&card)) {
-    if(hdImage.open(&fs, hddImageName, O_RDWR) && (hdImage.fileSize() % (ACSI_BLOCKSIZE)) == 0 && hdImage.fileSize() >= ACSI_BLOCKSIZE) {
-      blocks = hdImage.fileSize() / ACSI_BLOCKSIZE;
-      hdImage.seekSet(0);
-      hdImage.read(bootSector, ACSI_BLOCKSIZE);
-    } else {
-      card.readSector(0, bootSector);
-    }
-
-    // Filesystem found, check for floppy images
-    for(int i = 1; i >= 0; --i)
-      floppies[i].open(*this, floppyImageName[i]);
-  } else {
-    card.readSector(0, bootSector);
+  if(!readBlock(0, bootSector)) {
+    end();
+    return false;
   }
 
-  if((computeChecksum(bootSector) & 0xffff) == 0x1234)
-    bootable = true;
+  if((computeChecksum(bootSector) & 0xffff) == 0x1234) {
+    if(!image && bootSector[510] == 0x55 && bootSector[511] == 0xaa) {
+      // Ouch, there is a valid MS-DOS header.
+      // Chances are, there is a MS-DOS partition driver here,
+      // potentially conflicting with ours.
+      // Marking as non-bootable to avoid chain loading it.
+      bootable = false;
+    } else {
+      bootable = true;
+    }
+  }
+#endif
 
   return true;
 }
 
-void BlockDev::overlayBoot(uint8_t *target, int bootChainLun) {
-  // Inject the driver blob boot sector
-  memcpy(target, boot_bin, bootSize);
-
-  // Patch boot drive LUN
-  target[footer] = bootChainLun ? bootChainLun << 5 : 0;
-
-  // Patch checksum
-  target[footer+1] = 0;
-  target[footer+2] = 0;
-  uint16_t checksum = 0x1234 - computeChecksum(target);
-  target[footer+1] = (checksum >> 8) & 0xff;
-  target[footer+2] = checksum & 0xff;
+void BlockDev::end() {
+  root = nullptr;
+  image = nullptr;
+  blocks = 0;
 }
 
-status_t BlockDev::startSdRead(uint32_t block, int count) {
+Status BlockDev::startRead(uint32_t block, int count) {
+  if(image)
+    return startImageReadWrite(block, count);
+  return startSdRead(block, count);
+}
+
+Status BlockDev::read(uint8_t *data) {
+  if(image)
+    return readImage(data);
+  return readSd(data);
+}
+
+void BlockDev::stopRead() {
+  if(!image)
+    stopSdRead();
+}
+
+Status BlockDev::startWrite(uint32_t block, int count) {
+  if(image)
+    return startImageReadWrite(block, count);
+  return startSdWrite(block, count);
+}
+
+Status BlockDev::write(uint8_t *data) {
+  if(image)
+    return writeImage(data);
+  return writeSd(data);
+}
+
+void BlockDev::stopWrite() {
+  if(image)
+    stopImageWrite();
+  else
+    stopSdWrite();
+}
+
+Status BlockDev::startSdRead(uint32_t block, int count) {
+  acsiVerbosel(" -> SD read block=", block);
   if(block + count > blocks)
-    return STATUS_INVADDR;
-  if(!card.readStart(block))
-    return STATUS_READERR;
-  return STATUS_OK;
+    return AST_INVADDR;
+  if(!root->card.readStart(block))
+    return AST_READERR;
+  return AST_OK;
 }
 
-status_t BlockDev::readSd(uint8_t *data) {
-  if(!card.readData(data))
-    return STATUS_READERR;
-  return STATUS_OK;
+Status BlockDev::readSd(uint8_t *data) {
+  if(!root->card.readData(data))
+    return AST_READERR;
+  return AST_OK;
 }
 
 void BlockDev::stopSdRead() {
-  card.readStop();
+  root->card.readStop();
 }
 
-status_t BlockDev::startSdWrite(uint32_t block, int count) {
+Status BlockDev::startSdWrite(uint32_t block, int count) {
+  acsiVerbosel(" -> SD write block=", block);
   if(block + count > blocks)
-    return STATUS_INVADDR;
-  if(!card.writeStart(block))
-    return STATUS_WRITEERR;
-  return STATUS_OK;
+    return AST_INVADDR;
+  if(!root->card.writeStart(block))
+    return AST_WRITEERR;
+  return AST_OK;
 }
 
-status_t BlockDev::writeSd(uint8_t *data) {
+Status BlockDev::writeSd(uint8_t *data) {
 #if ACSI_READONLY == 1
-  return STATUS_WRITEERR;
+  return AST_WRITEERR;
 #elif ACSI_READONLY == 2
-  return STATUS_OK;
+  return AST_OK;
 #else
-  if(!card.writeData(data))
-    return STATUS_WRITEERR;
-  return STATUS_OK;
+  if(!root->card.writeData(data))
+    return AST_WRITEERR;
+  return AST_OK;
 #endif
 }
 
 void BlockDev::stopSdWrite() {
 #if ! ACSI_READONLY
-  card.writeStop();
+  root->card.writeStop();
 #endif
 }
 
-status_t BlockDev::startImageReadWrite(uint32_t block, int count) {
-  if(!hdImage)
-    return STATUS_NOMEDIUM;
-  if((block + count) * ACSI_BLOCKSIZE > hdImage.fileSize())
-    return STATUS_INVADDR;
-  if(!hdImage.seekSet(block * ACSI_BLOCKSIZE))
-    return STATUS_INVADDR;
-  return STATUS_OK;
+Status BlockDev::startImageReadWrite(uint32_t block, int count) {
+  acsiVerbosel(" -> Image r/w block=", block);
+  if(!image)
+    return AST_NOMEDIUM;
+  if((block + count) * ACSI_BLOCKSIZE > image->fileSize())
+    return AST_INVADDR;
+  if(!image->seekSet(block * ACSI_BLOCKSIZE))
+    return AST_INVADDR;
+  return AST_OK;
 }
 
-status_t BlockDev::readImage(uint8_t *data) {
-  if(!hdImage.read(data, ACSI_BLOCKSIZE))
-    return STATUS_READERR;
-  return STATUS_OK;
+Status BlockDev::readImage(uint8_t *data) {
+  if(!image->read(data, ACSI_BLOCKSIZE))
+    return AST_READERR;
+  return AST_OK;
 }
 
-status_t BlockDev::writeImage(uint8_t *data) {
+Status BlockDev::writeImage(uint8_t *data) {
 #if ACSI_READONLY == 1
-  return STATUS_WRITEERR;
+  return AST_WRITEERR;
 #elif ACSI_READONLY == 2
-  return STATUS_OK;
+  return AST_OK;
 #else
-  if(!hdImage.isWritable())
-    return STATUS_WRITEERR;
-  if(!hdImage.write(data, ACSI_BLOCKSIZE))
-    return STATUS_WRITEERR;
-  return STATUS_OK;
+  if(!image->isWritable())
+    return AST_WRITEERR;
+  if(!image->write(data, ACSI_BLOCKSIZE))
+    return AST_WRITEERR;
+  return AST_OK;
 #endif
 }
 
 void BlockDev::stopImageWrite() {
-  hdImage.flush();
+  image->flush();
+}
+
+bool BlockDev::readBlock(uint32_t block, uint8_t *data) {
+  Status status = startRead(block, 1);
+  if(status)
+    read(data);
+  if(status)
+    stopRead();
+  return status;
 }
 
 uint32_t BlockDev::computeChecksum(uint8_t *data, int size) {
@@ -237,23 +218,43 @@ uint32_t BlockDev::computeChecksum(uint8_t *data, int size) {
   return checksum;
 }
 
-bool BlockDev::allowBootWrite(uint8_t *data) {
-  int checksum = computeChecksum(data) & 0xffff;
-
-  if(checksum != 0x1234) {
-    // Boot sector not bootable: allow only if it was not previously bootable.
-    return !bootable;
-  }
-
+#if ACSI_DRIVER && ACSI_BOOT_OVERLAY >= 2
+void BlockDev::patchBootSector(uint8_t *data) {
   int bytesChanged = 0;
-  for(int i = 0; i < footer && bytesChanged < 32; ++i) {
+  for(int i = 0; i < 128 && bytesChanged < 16; ++i) {
     if(data[i] != boot_bin[i])
       ++bytesChanged;
   }
+  if(bytesChanged >= 16) {
+    // Boot sector was changed
+    acsiVerboseln("Written new boot sector");
+    return;
+  }
 
-  // Allow only if the new boot sector differs from the overlay.
-  return bytesChanged >= 32;
+  // Fetch the old boot sector
+  uint8_t oldBoot[ACSI_BLOCKSIZE];
+  stopWrite();
+  startRead(0, 1);
+  read(oldBoot);
+  stopRead();
+  startWrite(0, 1);
+
+  bool newBootable = (computeChecksum(data) & 0xffff) == 0x1234;
+
+  // Patch the old boot sector
+  memcpy(data, oldBoot, bootSize);
+
+  // If it was previously bootable, fix its checksum
+  if(newBootable) {
+    data[bootSize - 2] = data[bootSize - 1] = 0;
+    int checksum = 0x1234 - computeChecksum(data);
+    data[bootSize - 2] = (checksum >> 8) & 0xff;
+    data[bootSize - 1] = checksum & 0xff;
+    acsiVerboseln("Patched boot sector checksum");
+  } else {
+    acsiVerboseln("Merged old boot sector");
+  }
 }
-
+#endif
 
 // vim: ts=2 sw=2 sts=2 et

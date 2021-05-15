@@ -10,10 +10,11 @@ The aim of this project is to be very easy to build, extremely cheap, reliable a
 The module supports up to 5 SD card readers, showing them as 5 different ACSI devices plugged in. You can choose the ACSI
 ID of each SD card by soldering CS wires on the matching STM32 pin.
 
-It can work in 3 ways:
+It can work in 4 ways:
  * Expose a raw SD card as a hard disk to the Atari.
  * Expose a hard disk image file to the Atari.
  * Expose floppy disk images to the Atari with a built-in driver.
+ * Expose a SD filesystem as a GEMDOS drive on the Atari.
 
 
 Folders
@@ -23,7 +24,7 @@ Here is how the project is organized:
 
  * acsi2stm: The arduino project.
  * doc: All the documentation about the project.
- * emudrive: Sources for the floppy emulator.
+ * stmdrive: Sources for the floppy emulator and GEMDOS driver.
  * LICENSE: The license for the whole project.
 
 
@@ -34,7 +35,7 @@ For a quick start guide on how to use an already built unit, check [HowToUse](do
 
 For information about how to make the hardware, check [Hardware](doc/Hardware.md).
 
-For information about compiling the firmware with Arduino and uploading it to the STM32, check [Building](doc/Building.md)
+For information about compiling the firmware with Arduino and uploading it to the STM32, check [Compiling](doc/Compiling.md)
 
 The doc folder contains more documentation, you may wish to browse it if needed.
 

@@ -15,34 +15,36 @@
  * along with the program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FLOPPY_IMAGE_H
-#define FLOPPY_IMAGE_H
+#ifndef ROOT_DEVICE_H
+#define ROOT_DEVICE_H
 
 #include "Globals.h"
+#include "BlockDev.h"
 
-struct BlockDev;
+struct Acsi;
 
-struct FloppyImage {
-  // Returns 
-  bool open(BlockDev &dev, const char *fileName);
-  operator bool() {
-    return file;
-  }
+struct RootDevice {
+  void begin(int slot, int deviceId, int csPin, bool dedicatedSpi = false);
+  bool init();
 
-  status_t startReadWrite(uint32_t block, int count);
-  status_t startRawReadWrite(int track, int side, int sector, int count);
-  status_t read(uint8_t *data);
-  status_t write(uint8_t *data);
-  void stopWrite();
-  void computeFInfo(BELong &id, Bpb &bpb);
+  int slot; // Slot number (only for pretty printing)
+  int deviceId; // Device id on the DMA bus
+  BlockDev device; // The main block device
+  AcsiCard card; // The SD card storing data
+  AcsiVolume fs; // Filesystem on the SD card
+  AcsiFile hdImage; // Hard drive image, if any
 
-  bool bootable;
+  void getDeviceString(char*);
+  uint32_t serial(); // SD card serial number
+
+  friend class Acsi; // For Acsi::readDeviceDescription
+
 protected:
-  void guessImageGeometry();
-  static uint32_t floppyAddressToBlock(int track, int side, int sector);
-  BDFile file;
-  int sectors;
-  int sides;
+  uint32_t csPin;
+  bool dedicatedSpi;
+
+  void getFormatString(char *target);
 };
 
+// vim: ts=2 sw=2 sts=2 et
 #endif

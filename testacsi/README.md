@@ -7,3 +7,5 @@ data.
 In order to work, it uses the internal RAM buffer of the STM32, so it does *NOT* modify any data on SD cards.
 
 To assemble, use vasm on PC or Devpac on Atari.
+
+The program requires ACSI2STM compiled with the ACSI_DRIVER flag enabled.

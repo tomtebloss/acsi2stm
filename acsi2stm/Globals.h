@@ -20,76 +20,90 @@
 
 #include "acsi2stm.h"
 #include "Debug.h"
+#include "Status.h"
 #include <Arduino.h>
 #include <SdFat.h>
 
+static const int maxSd = sizeof(sdId) / sizeof(sdId[0]);
+
 const int ACSI_BLOCKSIZE = 512;
+
+// Converts a number of blocks into a user-friendly string.
+// Modifies 4 chars exactly, does not zero terminate the string.
+static inline void blocksToString(uint32_t blocks, char *target) {
+  // Characters: 0123
+  //            "213G"
+
+  target[3] = 'k';
+
+  uint32_t sz = (blocks + 1) / 2;
+  if(sz > 999) {
+    sz = (sz + 1023) / 1024;
+    target[3] = 'M';
+  }
+  if(sz > 999) {
+    sz = (sz + 1023) / 1024;
+    target[3] = 'G';
+  }
+  if(sz > 999) {
+    sz = (sz + 1023) / 1024;
+    target[3] = 'T';
+  }
+
+  // Roll our own int->string conversion.
+  // Libraries that do this are surprisingly large.
+  for(int i = 2; i >= 0; --i) {
+    if(sz)
+      target[i] = '0' + sz % 10;
+    else
+      target[i] = ' ';
+    sz /= 10;
+  }
+}
+
+#if ACSI_FAT32_ONLY
+typedef FatFile AcsiFile;
+typedef FatVolume AcsiVolume;
+#elif ACSI_EXFAT_ONLY
+typedef ExFatFile AcsiFile;
+typedef ExFatVolume AcsiVolume;
+#else
+typedef FsBaseFile AcsiFile;
+typedef FsVolume AcsiVolume;
+#endif
+typedef SdSpiCard AcsiCard;
 
 // Image file names
 static const char *hddImageName = IMAGE_FILE_NAME;
-static const char *floppyImageName[] = {
+#if ACSI_DRIVER
+static const char *floppyImageNames[] = {
   DRIVE_A_FILE_NAME,
   DRIVE_B_FILE_NAME
 };
+#endif
 
+#if ACSI_DRIVER
 // Boot sector constants
 static const int bootSize = 440;
 static const int footerSize = 3;
 static const int footer = bootSize - footerSize;
 
+#if ACSI_BOOT_OVERLAY
 extern const unsigned char boot_bin[];
-
-#if ACSI_FAT32_ONLY
-typedef FatFile BDFile;
-typedef FatVolume BDVolume;
-#elif ACSI_EXFAT_ONLY
-typedef ExFatFile BDFile;
-typedef ExFatVolume BDVolume;
-#else
-typedef FsBaseFile BDFile;
-typedef FsVolume BDVolume;
 #endif
-typedef SdSpiCard BDCard;
-
-typedef enum {
-  // Success codes
-  STATUS_OK = 0x0000, // Successful operation and end of stream.
-  STATUS_CONTINUE = 0x10000, // There are more blocks to come.
-  STATUS_PARTIAL = 0x20000, // The block is partial. The number of bytes is at offset 511.
-  STATUS_EMPTY = 0x30000, // Successful, but no data.
-
-  // SCSI status codes in KEY_ASC format (see SCSI KCQ)
-  STATUS_NOMEDIUM = 0x023a,
-  STATUS_READERR = 0x0311,
-  STATUS_WRITEERR = 0x0303,
-  STATUS_OPCODE = 0x0520,
-  STATUS_INVADDR = 0x0521,
-  STATUS_INVARG = 0x0524,
-  STATUS_INVLUN = 0x0525,
-
-  // BIOS status errors
-  STATUS_ERR = 0x02ff,    // basic, fundamental error
-  STATUS_E_SEEK = 0x03fa, // seek error
-  STATUS_EMEDIA = 0x02f9, // unknown media
-  STATUS_ESECNF = 0x05f8, // sector not found
-  STATUS_EWRITF = 0x03f6, // write fault
-  STATUS_EREADF = 0x03f5, // read fault
-  STATUS_EWRPRO = 0x03f3, // write protect
-  STATUS_E_CHNG = 0x02f2, // media change
-} status_t;
-
-static inline bool isError(status_t s) {
-  return (int)s & 0xff00;
-}
 
 // Big endian word
 struct BEWord {
   uint8_t bytes[2];
 
-  BEWord& operator=(uint16_t value) {
+  BEWord & operator=(uint16_t value) {
     bytes[0] = value >> 8;
     bytes[1] = value;
     return *this;
+  }
+
+  BEWord & operator |=(uint16_t value) {
+    return *this = (uint16_t)*this | value;
   }
 
   operator const uint16_t() const {
@@ -101,12 +115,16 @@ struct BEWord {
 struct BELong {
   uint8_t bytes[4];
 
-  BELong& operator=(uint32_t value) {
+  BELong & operator=(uint32_t value) {
     bytes[0] = value >> 24;
     bytes[1] = value >> 16;
     bytes[2] = value >> 8;
     bytes[3] = value;
     return *this;
+  }
+
+  BELong & operator |=(uint32_t value) {
+    return *this = (uint32_t)*this | value;
   }
 
   operator const uint32_t() const {
@@ -128,20 +146,21 @@ struct Bpb
   BEWord fatrec;  // first FAT record (of last FAT)
   BEWord datrec;  // first data record
   BEWord numcl;   // number of data clusters available
-  BEWord b_flags; // flags (see below)
+  BEWord b_flags; // flags (bit 0 = FAT16, bit 1 = non-removable)
 };
 
-// Struct passed to the floppy emulator
+// Struct passed to the logical filesystem mounter
 // This struct needs to be a multiple of 16 bytes
-struct FloppyInfo {
-  uint8_t mask; // Virtual floppy mask
-  uint8_t lerr; // Last error
-  BELong id[2]; // Floppy unique id
-  Bpb bpb[2];   // Floppy BIOS parameter block
-  uint8_t p[2]; // Padding
-  void setLErr(status_t s) {
-    lerr = (uint8_t)(int)s;
-  }
+struct FsInfo {
+  BELong dmask; // Mounted drives mask
+  BEWord boot; // Boot drive
+  BELong fmask; // Mounted filesystems mask
+  BEWord dev; // Device number for id and bpb
+  BELong id; // Drive unique id
+  Bpb bpb;   // Drive BIOS parameter block
+  uint8_t p[14]; // Padding
 };
+
+#endif // ACSI_DRIVER
 
 #endif

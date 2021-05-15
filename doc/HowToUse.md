@@ -8,9 +8,21 @@ limitations. See [FloppyEmulator](FloppyEmulator.md) if you are interested.
 
 Using a hard drive on the Atari requires a hard drive driver. The following drivers are known to work:
 
+ * The integrated driver. Still experimental.
  * The original AHDI driver. This has a lot of limitations, you should avoid it.
  * The ICD PRO drivers. It formats hard drives to the Atari format.
  * The [Peter Putnik ACSI driver](https://atari.8bitchip.info/astams.php). It allows using standard FAT partitions.
+
+
+Using the integrated driver
+---------------------------
+
+ * Format a SD card with either FAT16, FAT32 or EXFAT.
+ * Make sure it's not bootable by the Atari (wipe its boot sector if necessary)
+ * Insert the SD card into the reader.
+ * Boot the ST, the ACSI2STM driver should load and your SD cards will appear as C:, D:, ... drives.
+
+Note: If you have a hard drive driver that mounts FAT16 SD cards such as P. Putnik's, it may conflict with the GEMDOS driver. Wipe the boot sector to make sure to load the ACSI2STM driver.
 
 
 Creating a bootable hard drive with Peter Putnik's driver
@@ -22,10 +34,6 @@ Creating a bootable hard drive with Peter Putnik's driver
  * Create a folder named AUTO and move BIGDOS.PRG in it.
  * If you prefer using a real floppy disk:
    * Copy AUBACD07.PRG from the zip file to the floppy.
- * If you prefer using a floppy image:
-   * Create an Atari floppy image (st format) and copy AUBACD07.PRG on it.
-   * Create a folder named ACSI2STM to the root of the SD card and copy the floppy image in it.
-   * Rename the image to "DRIVE_A.ST".
  * Boot the Atari with the SD card inserted (and the floppy disk if you chose a real floppy disk).
  * On the GEM desktop, open drive A.
  * Run AUBACD07.PRG.

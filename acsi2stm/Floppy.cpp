@@ -15,35 +15,35 @@
  * along with the program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef WATCHDOG_H
-#define WATCHDOG_H
-
 #include "Globals.h"
 
-#define WATCHDOG_TIMER Timer2
+#if ACSI_DRIVER
 
-// Timer-based watchdog
-struct Watchdog {
-  void begin(int millis = WATCHDOG_TIMEOUT);
-  void feed() {
-#if WATCHDOG_TIMEOUT
-    WATCHDOG_TIMER.setCount(0);
-#endif
-  }
-  void pause() {
-#if WATCHDOG_TIMEOUT
-    WATCHDOG_TIMER.pause();
-#endif
-  }
-  void resume() {
-#if WATCHDOG_TIMEOUT
-    feed();
-    WATCHDOG_TIMER.resume();
-#endif
-  }
-protected:
-  static void trigger();
-};
+#include "Floppy.h"
+#include "RootDevice.h"
 
-// vim: ts=2 sw=2 sts=2 et
+bool Floppy::begin(RootDevice *root_, const char *fileName_) {
+  fileName[0] = 0;
+
+  if(!root_) {
+    end();
+    return false;
+  }
+
+  if(!root_->fs.exists(fileName_)) {
+    end();
+    return false;
+  }
+
+  if(!floppyImage.open(&root_->fs, fileName_, O_RDWR)) {
+    end();
+    return false;
+  }
+
+  strncpy(fileName, fileName_, 255);
+  fileName[255] = 0;
+
+  return BlockDev::begin(&floppyImage, root_);
+}
+
 #endif

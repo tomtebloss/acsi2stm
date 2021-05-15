@@ -10,7 +10,7 @@ Hardware needed
  * One or more SD card(s).
  * A male DB19 port (you can modify a DB25 port to fit) with a ribbon cable.
  * (recommended) A protoboard PCB to solder all the components and wires together.
- * Do *NOT* connect USB on the STM32. Use the +5V or +3.3V pin to power it.
+ * Do *NOT* connect USB data lines on the STM32. Use the +5V or +3.3V pin to power it if you are unsure.
 
 
 Building the ACSI cable
@@ -142,7 +142,8 @@ If you built a board for v1.0, here are the changes you will have to do:
  * Cut the trace (or wire) between pin A12 of the STM32 and pin 10 of the ACSI port
  * Solder a wire between pin A8 of the STM32 and pin 10 of the ACSI port
  * Solder a wire between pin A12 of the STM32 and pin 14 of the ACSI port
- * Cut any traces between A4, A3, A2, A1, B0, B1, B3 of the STM32 that go to GND. Make sure to keep traces that go to the SD card CS pin.
+ * Cut any traces between A4, A3, A2, A1, B0, B1, B3 of the STM32 that go to GND. Make sure to keep traces that go to the SD card
+   CS pin.
 
 Sorry for the major inconvenience, but I had to do this to use hardware timers and the SdFat library that
 use fixed pins on the microcontroller.

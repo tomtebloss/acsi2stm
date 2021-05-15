@@ -1,0 +1,52 @@
+Block device map
+
+LUN 0:Hard drive emulation
+      Forwards the matching SD card or its image
+      Overlays the driver onto the bootloader
+
+LUN 1:Raw hard drive
+      Same as LUN 0 without the overlay
+
+LUN 2:Floppy image access
+      Control byte selects the floppy drive
+
+LUN 3:Floppy image with track/side/sector addressing
+      Block number = 0x000sTTSS
+        s = side (0 or 1)
+        TT = track number
+        SS = sector number (1..12)
+
+LUN 7:Special block device
+      Block, count and control are used in various ways
+
+Block ranges for the special block device:
+
+0x000000-0x0fffff: Driver code. Normal read-only block device.
+
+0x100000-0x1000ff: Single block commands.
+                   These commands always span 1 block.
+                   Block count is passed as-is but must be non-zero.
+
+         0x100000: Read device description.
+                   Returns textual information in the data block.
+         0x100001: Read filesystem info.
+                   Returns a finfo struct.
+                   control = drive number (0..25 for A..Z)
+         0x100002: Read/Write filesystem access commands.
+                   count = GEMDOS command id
+                   control = drive number (0..25 for A..Z)
+
+0x100100-0x10ffff: 256 blocks ranges.
+                   Access in these ranges must be starting at the first block
+                   of the range and span at most 255 blocks.
+         0x100100: Loopback.
+                   Reads or writes to the temporary buffer. Useful for tests.
+         0x100200: Reads 0.
+         0x100300: Reads 0xff.
+         0x100400: Reads 0x00,0xff.
+         0x100500: Reads 0x55,0xaa.
+         0x100600: Read/write current file for filesystem operations.
+         0x101n00: (n = 0..7) Reads bit n set and other bits clear.
+         0x101n00: (n = 8..f) Reads bit n blink and other bits clear.
+         0x102n00: (n = 0..7) Reads bit n clear and other bits set.
+         0x102n00: (n = 8..f) Reads bit n blink and other bits set.

@@ -22,7 +22,7 @@ print	macro
 println	macro
 	prints	.msg\@(pc)
 	bra.b	.skip\@
-.msg\@	dc.b	\1,10,0
+.msg\@	dc.b	\1,13,10,0
 	even
 .skip\@
 	endm
@@ -54,7 +54,7 @@ dump	macro
 	move.w	#\2,-(sp)
 	bsr.w	dbg_dump
 	addq	#6,sp
-	print	10
+	print	<13,10>
 	endm
 
 ; Dump a word buffer
@@ -63,7 +63,7 @@ dumpw	macro
 	move.w	#\2,-(sp)
 	bsr.w	dbg_dump_word
 	addq	#6,sp
-	print	10
+	print	<13,10>
 	endm
 
 ; Dump a long buffer
@@ -72,7 +72,7 @@ dumpl	macro
 	move.w	#\2,-(sp)
 	bsr.w	dbg_dump_long
 	addq	#6,sp
-	print	10
+	print	<13,10>
 	endm
 
 ; Dump registers
@@ -218,7 +218,7 @@ dbg_reset:
 	tst.b	d0
 	bne.b	.reset_test
 
-	clr.l	$426.w                      ; Corrupt RAM for full reset
+	clr.l	$426.w                      ; Corrupt magic for full reset
 
 	reset
 .reset_wait
@@ -269,13 +269,18 @@ dbg_l:
 	rts
 
 dbg_exec_cmd
+	move.w	#10,d1
+.dbg_wait:
+	dbra	d1,.dbg_wait
+
 	pea	(a0)
+
 	bsr.w	acsi_exec_dbg_cmd
 	move.l	(sp)+,a0
 
-	move.w	#3000,d1     
-.dbg_wait:
-	dbra	d1,.dbg_wait
+	move.w	#10,d1
+.dbg_wait2:
+	dbra	d1,.dbg_wait2
 	rts
 
 dbg_acsi
@@ -290,7 +295,7 @@ acsi_exec_dbg_cmd:
 ; Execute an ACSI command
 ; The command buffer is prefixed by the length of the command in bytes.
 ;
-; TODO: support commands with no DMA if d1==0
+; This follows old coding standards, it sucks, but it does the job.
 ;
 ; 4(sp): Command buffer
 ; 8(sp): DMA address (optional, unused if block count == 0)
@@ -364,7 +369,7 @@ acsi_exec_dbg_cmd:
 
 .ack:
 	; Wait until DMA ack (IRQ pulse)
-	move.l	#600,d1                     ; 3 second timeout
+	move.l	#10,d1                      ; 50ms second timeout
 	add.l	hz200.w,d1                  ;
 
 .ack_wait:
@@ -379,7 +384,6 @@ acsi_exec_dbg_cmd:
 	addq.l	#4,sp                       ; to the caller of acsi_exec_cmd
 	bra.b	.abort                      ;
 
-; vim: ts=8 sw=8 sts=8 noet
 dbg__end:
 
-; vim: ts=8 sw=8 sts=8 noet
+; vim: ff=dos ts=8 sw=8 sts=8 noet

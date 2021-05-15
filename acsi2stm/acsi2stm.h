@@ -22,10 +22,11 @@
 
 // acsi2stm global configuration
 
-#define ACSI2STM_VERSION "2X1"
+// Patched by build_release.sh from the VERSION file
+#define ACSI2STM_VERSION "2.2a"
 
 // Set to 1 to enable debug output on the serial port
-#define ACSI_DEBUG 0
+#define ACSI_DEBUG 1
 
 // Set to 1 to enable verbose command output on the serial port
 #define ACSI_VERBOSE 0
@@ -34,30 +35,52 @@
 // Set to 0 to disable data dump
 #define ACSI_DUMP_LEN 16
 
+// Serial port used for debug/verbose output.
+#define ACSI_SERIAL Serial
+
+// Serial port speed
+#define ACSI_SERIAL_BAUD 115200
+
+// Filter/delay data acquisition on ACK pulse.
+// Set this to 1 to sample 13.8ns later
+// Set this to 2 to sample 41.6ns later
+// Only impacts DMA writes (ST -> STM32)
+#define ACSI_ACK_FILTER 0
+
+// Filter/delay data acquisition on CS pulse.
+// Set this to 1 to sample 13.8ns later
+// Set this to 2 to sample 41.6ns later
+// Set this to 3 to sample 97.1ns later
+// Only impacts command send (ST -> STM32)
+#define ACSI_CS_FILTER 1
+
 // Set to 1 to make all SD cards readonly (returns an error if writing)
 // Set to 2 to ignore writes silently (returns OK but does not actually write)
-// Note: this does not apply to floppy images
+// Note: this does not apply to floppy images nor mounted filesystems
 #define ACSI_READONLY 0
 
-// Set to 1 to make all floppy disks write protected
-// Set to 2 to ignore writes silently (returns OK but does not actually write)
-#define ACSI_FLOPPY_READONLY 0
+// Enable the integrated ACSI driver
+#define ACSI_DRIVER 1
 
-// Set this to 1 to enable the floppy emulation driver on boot.
-// When this driver is enabled, you won't be able to write to the hard drive
-// boot sector.
+// Boot sector overlay.
+// Set this to 0 to disable boot overlay. Load the driver with emudrive.tos.
+// Set this to 1 to enable the driver on boot.
+// Set this to 2 to allow overlaying an already bootable boot sector.
+// Set this to 3 to allow overlaying a boot sector and disable chaining.
+// When this driver is enabled, the boot code overlay may interfere with the
+// actual boot sector.
 #define ACSI_BOOT_OVERLAY 1
 
-// Set this to 1 if you want to boot emulated floppies.
-#define ACSI_BOOT_FLOPPY 1
+// Set to 1 to log filesystem commands on the serial port
+#define ACSI_FS_DEBUG 1
 
 // Set this to limit SD capacity artificially.
 // Set to ~0 if you don't want any limit
 #define ACSI_MAX_BLOCKS ~0 // No limit
-//#define AHDI_MAX_BLOCKS 0x00FFFF // 32MB limit
-//#define AHDI_MAX_BLOCKS 0x0FFFFF // 512MB limit
-//#define AHDI_MAX_BLOCKS 0x1FFFFF // 1GB limit
-//#define AHDI_MAX_BLOCKS 0xFFFFFF // 8GB limit
+//#define ACSI_MAX_BLOCKS 0x00FFFF // 32MB limit
+//#define ACSI_MAX_BLOCKS 0x0FFFFF // 512MB limit
+//#define ACSI_MAX_BLOCKS 0x1FFFFF // 1GB limit
+//#define ACSI_MAX_BLOCKS 0xFFFFFF // 8GB limit
 
 // Enable activity LED on pin C13
 #define ACSI_ACTIVITY_LED 1
@@ -81,18 +104,31 @@
 // SD card CS pin definitions
 const int sdCs[] = {
   // List of SD card CS pins. CS pins must be on PA0 to PA4.
-  // Use -1 to ignore an ID
-  PA4, // ACSI ID 0
-  PA3, // ACSI ID 1
-  PA2, // ACSI ID 2
-  PA1, // ACSI ID 3
-  PA0, // ACSI ID 4
-   -1, // ACSI ID 5
-   -1, // ACSI ID 6
-   -1, // ACSI ID 7
+  PA4,
+  PA3,
+//  PA2,
+//  PA1,
+//  PA0,
 };
-// Set it to the number of SD card readers
-const int maxSd = 5;
+
+// ACSI id for each SD card.
+const int sdId[] = {
+  0,
+  1,
+//  2,
+//  3,
+//  4,
+};
+
+#if ACSI_DRIVER
+// Maximum number of file descriptors. Shared between all mounted volumes.
+// This value cannot be greater than 128.
+static const int maxFd = 128;
+#endif
+
+#define ACSI2STM_H_DEPCHECK
+#include "DepCheck.h"
+#undef ACSI2STM_H_DEPCHECK
 
 // vim: ts=2 sw=2 sts=2 et
 #endif

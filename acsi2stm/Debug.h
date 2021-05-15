@@ -25,26 +25,30 @@
 #if ACSI_DEBUG
 template<typename T>
 inline void acsiDbg(T txt) {
-  Serial.print(txt);
-  Serial.flush();
+  ACSI_SERIAL.print(txt);
+  ACSI_SERIAL.flush();
+  while(!ACSI_SERIAL);
 }
 
 template<typename T, typename F>
 inline void acsiDbg(T txt, F fmt) {
-  Serial.print(txt, fmt);
-  Serial.flush();
+  ACSI_SERIAL.print(txt, fmt);
+  ACSI_SERIAL.flush();
+  while(!ACSI_SERIAL);
 }
 
 template<typename T>
 inline void acsiDbgln(T txt) {
-  Serial.println(txt);
-  Serial.flush();
+  ACSI_SERIAL.println(txt);
+  ACSI_SERIAL.flush();
+  while(!ACSI_SERIAL);
 }
 
 template<typename T, typename F>
 inline void acsiDbgln(T txt, F fmt) {
-  Serial.println(txt, fmt);
-  Serial.flush();
+  ACSI_SERIAL.println(txt, fmt);
+  ACSI_SERIAL.flush();
+  while(!ACSI_SERIAL);
 }
 
 static void acsiDbgDump(const void *data_, int size, int maxSize = ACSI_DUMP_LEN) {

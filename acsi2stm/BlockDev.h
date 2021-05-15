@@ -19,77 +19,81 @@
 #define BLOCKDEV_H
 
 #include "Globals.h"
-#include "FloppyImage.h"
 
-// Used to parse FAT little endian numbers
-static inline uint16_t readLE(const uint8_t *ptr) {
-  return (uint16_t)ptr[1] << 8 | ptr[0];
-}
+struct RootDevice;
 
 struct BlockDev {
+  // Initialize the block device from a SD card
+  bool begin(RootDevice *root, uint32_t maxBlocks = ACSI_MAX_BLOCKS);
 
-  void getDeviceString(char *str);
+  // Initialize the block device from an image file
+  bool begin(AcsiFile *image, RootDevice *root);
 
-  uint32_t csPin;
-  uint32_t maxBlocks;
-  bool dedicatedSpi;
-  int deviceId;
-  uint32_t blocks;
-  status_t lastErr;
-  uint32_t lastBlock;
-  bool lastSeek;
-
-  BDFile hdImage;
-  FloppyImage floppies[2];
-  BDVolume fs;
-
-  // Returns the SD card serial.
-  // Returns 1 if the SD card serial is 0.
-  // Returns 0 if no SD card is present.
-  // Calls resetState if no SD card is present.
-  uint32 serial();
-
-  // Initialize the device
-  bool begin(int deviceId, int csPin, uint32_t maxBlocks, bool dedicatedSpi = false);
-
-  // Reset state to an ejected SD card
-  void eject();
-
-  // Reinitialize the sd card
-  bool initSd();
+  // Uninitialize
+  void end();
 
   // Compute the checksum of a data block
-  uint32_t computeChecksum(uint8_t *data, int size = ACSI_BLOCKSIZE);
+  static uint32_t computeChecksum(uint8_t *data, int size = ACSI_BLOCKSIZE);
 
   // Overlay a boot sector onto the target
   void overlayBoot(uint8_t *target, int bootChainLun);
 
-  // Stream read SD card
-  status_t startSdRead(uint32_t block, int count);
-  status_t readSd(uint8_t *data);
-  void stopSdRead();
+  // Stream read the device
+  Status startRead(uint32_t block, int count);
+  Status read(uint8_t *data);
+  void stopRead();
 
-  // Stream write SD card
-  status_t startSdWrite(uint32_t block, int count);
-  status_t writeSd(uint8_t *data);
-  void stopSdWrite();
+  // Stream write the device
+  Status startWrite(uint32_t block, int count);
+  Status write(uint8_t *data);
+  void stopWrite();
 
-  // Stream read HD image
-  status_t startImageReadWrite(uint32_t block, int count);
-  status_t readImage(uint8_t *data);
-  status_t writeImage(uint8_t *data);
-  void stopImageWrite();
+  // Convenience function to read boot loaders etc...
+  bool readBlock(uint32_t block, uint8_t *data);
 
-  // Return true if the boot sector can be written.
-  bool allowBootWrite(uint8_t *data);
+  bool isImage() {
+    return image;
+  }
 
-  // true if the SD card (or image) is bootable
+  operator bool() const {
+    return blocks;
+  }
+
+#if ACSI_DRIVER
+  // true if the block device is bootable
   bool bootable;
+#endif
+
+  RootDevice *root;
+  uint32_t blocks;
+
+  friend class Acsi; // Access to last*
 
 protected:
-  BDCard card;
-};
+  AcsiFile *image;
 
+  uint32_t maxBlocks;
+  Status lastErr;
+  uint32_t lastBlock;
+  bool lastSeek;
+
+  bool init();
+
+  // Low level access
+  Status startSdRead(uint32_t block, int count);
+  Status readSd(uint8_t *data);
+  void stopSdRead();
+  Status startSdWrite(uint32_t block, int count);
+  Status writeSd(uint8_t *data);
+  void stopSdWrite();
+  Status startImageReadWrite(uint32_t block, int count);
+  Status readImage(uint8_t *data);
+  Status writeImage(uint8_t *data);
+  void stopImageWrite();
+#if ACSI_DRIVER && ACSI_BOOT_OVERLAY >= 2
+  void patchBootSector(uint8_t *data);
+#endif
+};
 
 // vim: ts=2 sw=2 sts=2 et
 #endif

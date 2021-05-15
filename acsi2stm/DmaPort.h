@@ -60,9 +60,6 @@ struct DmaPort {
   // Read one byte using the IRQ/CS method.
   static uint8_t readIrq();
 
-  // Send bytes using the IRQ/CS method.
-  static void sendIrq(const uint8_t *bytes, int count);
-
   // Send one byte using the IRQ/CS method.
   // This is normally used for the status byte.
   static void sendIrq(uint8_t byte);
@@ -90,12 +87,13 @@ struct DmaPort {
   uint8_t dataBuf[ACSI_BLOCKSIZE];
 protected:
   // Low level pin manipulation methods
-  static void releaseRq();
+  static void releaseDrq();
+  static void releaseIrq();
   static void releaseDataBus();
-  static void releaseBus();
   static void acquireDrq();
   static void acquireDataBus();
-  static bool readCs();
+  static uint8_t waitCs();
+  static uint8_t waitA1();
   static bool readAck();
   static void pullIrq();
   static bool pullDrqUntilAck();
@@ -103,9 +101,10 @@ protected:
 
   // Device initialization
   static void setupDrqTimer();
-  static void setupAckDmaTransfer();
+  static void setupCsTimer();
   static void setupGpio();
 
+public: // XXX
   uint8_t deviceMask;
 };
 

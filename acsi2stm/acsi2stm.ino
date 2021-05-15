@@ -24,17 +24,20 @@
 #include "Debug.h"
 #include "DmaPort.h"
 #include "Acsi.h"
-#include "BlockDev.h"
+#include "RootDevice.h"
+
+static_assert(sizeof(sdId) == sizeof(sdCs), "SD card CS pins and device id must match. Check sdCs and sdId arrays");
 
 // Globals
 
 DmaPort dma;
-BlockDev blockDevices[maxSd];
+RootDevice roots[maxSd];
 Acsi acsi;
 
 // Main setup function
 void setup() {
-  Serial.begin(115200); // Init the serial port only if needed
+  ACSI_SERIAL.begin(ACSI_SERIAL_BAUD);
+  while(!ACSI_SERIAL);
 
   // Send a few characters to synchronize autoconfigured USB-serial dongles.
   acsiDbgln("");
@@ -42,94 +45,39 @@ void setup() {
   acsiDbgln("");
   delay(100);
 
-  Serial.println("-----------------------");
-  Serial.println("ACSI2STM SD bridge v" ACSI2STM_VERSION);
-  Serial.println("-----------------------");
-  Serial.println("");
+  ACSI_SERIAL.println("-----------------------");
+  ACSI_SERIAL.println("ACSI2STM SD bridge v" ACSI2STM_VERSION);
+  ACSI_SERIAL.println("-----------------------");
+  ACSI_SERIAL.println("");
 
   // Initialize the ACSI port
   dma.begin();
 
   // Map block devices to device id
-  int sdCount = 0;
-  int sdFound = 0;
-
-  BlockDev *deviceMap[8];
-  for(int i = 0; i < 8; ++i) {
-    if(sdCs[i] == -1) {
-      deviceMap[i] = nullptr;
-    } else if(sdCount < maxSd) {
-      deviceMap[i] = &blockDevices[sdCount];
-      dma.addDevice(i);
-      sdCount++;
-    }
+  for(int i = 0; i < maxSd; ++i) {
+    roots[i].begin(i + 1, sdId[i], sdCs[i], maxSd == 1);
+    dma.addDevice(sdId[i]);
   }
 
-  Serial.println("Initializing the ACSI bridge ...");
+  // Start the whole ACSI bridge engine
+  ACSI_SERIAL.println("Initializing the ACSI bridge...");
+  acsi.begin(&dma, roots, maxSd);
 
-  acsi.begin(&dma, deviceMap);
+  ACSI_SERIAL.println("");
+  ACSI_SERIAL.println("Detected volumes:");
+  acsi.readDeviceDescription(dma.dataBuf);
+  ACSI_SERIAL.flush();
+  ACSI_SERIAL.println((char *)dma.dataBuf);
 
-  for(int i = 0; i < sdCount; ++i) {
-    BlockDev &dev = blockDevices[i];
-
-    Serial.print("ACSI device ");
-    Serial.print(i);
-    Serial.print(':');
-
-    if(dev.blocks) {
-      char str[32];
-      dev.getDeviceString(str);
-      // Substitute the atari logo
-      if(str[22] == 0x0e) {
-        memcpy(&str[22], "/|\\", 4);
-      } else {
-        str[24] = 0;
-      }
-      Serial.println(str);
-      if(dev.hdImage)
-        Serial.println("    Has a hard drive image");
-      if(dev.floppies[0]) {
-        Serial.print("    Has ");
-        if(dev.floppies[0].bootable)
-          Serial.print("bootable ");
-        Serial.println("drive A");
-      }
-      if(dev.floppies[1]) {
-        Serial.print("    Has ");
-        if(dev.floppies[1].bootable)
-          Serial.print("bootable ");
-        Serial.println("drive B");
-      }
-      ++sdFound;
-    } else if(i == acsi.bootOverlay) {
-      Serial.println("Floppy simulator");
-      switch(acsi.bootChainLun) {
-        case 1:
-          Serial.println("    Boots on drive A");
-          break;
-        case 2:
-          Serial.println("    Boots on drive B");
-          break;
-        case 5:
-          Serial.print("    Boots on hard drive ");
-          Serial.println(acsi.bootOverlay);
-          break;
-      }
-    } else {
-      Serial.println("No SD card");
-    }
-  }
-
-  Serial.print(sdFound);
-  Serial.println(" SD cards found");
-  Serial.println("");
-  Serial.println("Waiting for the ACSI bus");
+  ACSI_SERIAL.println("Waiting for the DMA bus to be ready...");
+  ACSI_SERIAL.flush();
 
   dma.waitBusReady();
 
-  Serial.println("");
-  Serial.println("--- Ready to go ---");
-  Serial.println("");
+  ACSI_SERIAL.println("");
+  ACSI_SERIAL.println("--- Ready to go ---");
+  ACSI_SERIAL.println("");
+  ACSI_SERIAL.flush();
 }
 
 // Main loop
