@@ -127,6 +127,7 @@ bool TinyPath::set(AcsiVolume &volume, const char *path, int create) {
     AcsiFile &child = f[~i & 1];
 
     path = parseAtariPattern(path);
+if(create == -1) acsiDbgl("a path=",path," pattern=",pattern," name=",name);
 
     if(pattern[0] == '.') {
       if(pattern[1] == '.') {
@@ -169,7 +170,6 @@ bool TinyPath::set(AcsiVolume &volume, const char *path, int create) {
 
         // Convert file name to unicode
         char unicodeName[52];
-        memcpy(name, pattern, sizeof(name));
         patternToUnicode(unicodeName, 52);
 
         if(create == 1) {
@@ -182,18 +182,12 @@ bool TinyPath::set(AcsiVolume &volume, const char *path, int create) {
             return false;
         } else if(create == 2) {
           // Create a directory
-{
-  char full[256];
-  getAbsolute(volume, full,256);
-  acsiDbgl("XXX mkdir ",full," name='",unicodeName,"'");
-}
           if(!child.mkdir(&parent, unicodeName))
             return false;
-  acsiDbgln("created");
           if(!child.open(&parent, unicodeName))
             return false;
         } else if(create == -1) {
-          // Return parent path
+          // Return true if only the last part is missing
           return !*path;
         }
       }

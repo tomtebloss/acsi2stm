@@ -65,6 +65,7 @@ protected:
     GD_DGETPATH = 71,
     GD_FSFIRST = 78,
     GD_FSNEXT = 79,
+    GD_FRENAME = 86,
   };
 
   static const uint8_t ATTRIB_READONLY = 0x01;
@@ -105,6 +106,11 @@ protected:
     BEWord attr;
   };
 
+  struct FrenameW {
+    char from[256];
+    char to[256];
+  };
+
   // Data persisting between a command write and a command read call.
   // It can be static because it's guaranteed that no other command will be
   // sent between the write and the read call.
@@ -128,6 +134,7 @@ protected:
   Status writeFsfirst(FsfirstW *data);
   Status writeFsnext(DTA *data);
   Status readFsfirstNext(DTA *data);
+  Status writeFrename(const FrenameW *data);
 
   static bool attribsMatch(AcsiFile *f, uint8_t flags);
 

@@ -1,7 +1,23 @@
-; GEMDOS call
+; ACSI2STM Atari hard drive emulator
+; Copyright (C) 2019-2021 by Jean-Matthieu Coulon
+
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+; GEMDOS call hook
 
 	move.w	globals+traplen(pc),d0  ; d0 = trap stack frame len
-	lea	(sp,d0),a0              ;
+	lea	(sp,d0),a0              ; a0 = parameters
 	move.w	(a0),d1                 ; d1 = operation
 
 	move.l	a3,-(sp)                ; Save a3
@@ -9,8 +25,9 @@
 
 	cmp.w	#Dcreate,d1
 	blt.w	gemdos_pass
-	cmp.w	#Fsnext,d1
+	cmp.w	#Frename,d1
 	bgt.w	gemdos_pass
+
 ;	print	'gemdos' ;;;;; XXX
 ;	dumpw	(a3),6     ;;;;; XXX
 
@@ -37,9 +54,11 @@
 	dcb.w	78-71-1,gemdos_pass-.jtable
 	dc.w	Fsfirst_impl-.jtable    ; 78
 	dc.w	Fsnext_impl-.jtable     ; 79
+	dcb.w	86-79-1,gemdos_pass-.jtable
+	dc.w	Frename_impl-.jtable    ; 86
 
 ; Implementation files
-	include	dpath.s                 ; Dgetpath, Dsetpath
+	include	dpath.s                 ; Dgetpath, Dpath
 	include	fsfn.s                  ; Fsfirst, Fsnext
 	include	file.s                  ; Fopen, Fread, Fclose, ...
 
@@ -53,6 +72,7 @@ gemdos_exit_long                        ; Exit returning a long
 
 ;	print	'ret=' ;;;;; XXX
 ;	printl	d0  ;;;;;;; XXX
+
 	rte                             ;
 
 ; Pass the call to GEMDOS

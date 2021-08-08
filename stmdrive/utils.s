@@ -1,3 +1,19 @@
+; ACSI2STM Atari hard drive emulator
+; Copyright (C) 2019-2021 by Jean-Matthieu Coulon
+
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 ; Various utility functions
 
 blkcpy_impl
@@ -46,7 +62,7 @@ ownpath
 ; Input:
 ;  a0 = pointer to the path string
 ; Returns:
-;  d0 = drive number of the path
+;  d2 = drive number of the path
 ;  Z flag clear if path owned by the driver
 
 	move.l	a0,d1                   ; Test if a0 is a null pointer
@@ -93,7 +109,7 @@ ownpath
 owncur
 ; Test if the current drive is mounted by the driver
 ; Returns:
-;  d0 = drive number of the path
+;  d2 = drive number of the path
 ;  Z flag clear if the current drive is owned by the driver
 
 	gemdos	Dgetdrv,2               ; Get current drive

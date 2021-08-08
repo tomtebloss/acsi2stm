@@ -1,7 +1,32 @@
-	move.w	traplen(pc),d0          ; d0 = trap stack frame len
-	lea	(0,sp,d0),a0            ; a0 = parameters
+; ACSI2STM Atari hard drive emulator
+; Copyright (C) 2019-2021 by Jean-Matthieu Coulon
+
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+; XBIOS hook
+; Hooks Floprd and Flopwr
+
+	move.w	globals+traplen(pc),d0  ; d0 = trap stack frame len
+	lea	(sp,d0),a0              ; a0 = parameters
 	move.w	(a0),d1                 ; d1 = operation
 
+	print	'xbios'       ;;; XXX
+	printw	d1            ;;; XXX
+	dumpw	(a0),8        ;;; XXX
+
+	cmp.w	#Flopfmt,d1
+	beq.w	.flopfm
 	cmp.w	#Floprd,d1
 	beq.w	.floprd
 	cmp.w	#Flopwr,d1
@@ -82,6 +107,17 @@ floprw.count	rs.w	1
 
 .return	movem.l	(sp)+,a3                ; Restore registers
 	rte
+
+.flopfm	move.w	10(a0),d2               ; Read drive number
+
+	cmp.w	#2,d2                   ; Only format floppies
+	bge.b	.end                    ;
+
+	bsr.w	owndrv                  ; Test if the drive is owned
+	bne.b	.end                    ; Drive not owned: pass through
+
+	moveq	#0,d0                   ; Always successful
+	rte                             ;
 
 .exit	movem.l	(sp)+,a3                ; Restore registers
 .end

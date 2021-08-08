@@ -1,3 +1,19 @@
+; ACSI2STM Atari hard drive emulator
+; Copyright (C) 2019-2021 by Jean-Matthieu Coulon
+
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 ; File operations
 
 ; struct FopenW
@@ -187,5 +203,50 @@ Fread...	rs.b	0
 .dmaerr	movem.l	(sp)+,d3-d7/a4-a5       ; Restore registers
 
 	bra.w	gemdos_exit_long
+
+; struct FrenameW
+		rsreset
+FrenameW.path...=256
+FrenameW.from	rs.b	FrenameW.path...
+FrenameW.to	rs.b	FrenameW.path...
+FrenameW...	rs.b	0
+
+; Generic function taking two paths as a parameter
+Frename_impl
+		rsreset
+		rs.w	1               ; GEMDOS operation code
+		rs.w	1               ; Padding
+Frename.from	rs.l	1
+Frename.to   	rs.l	1
+Frename...	rs.b	0
+
+	lea	Frename.from(a3),a0     ;
+	bsr.w	ownpath                 ; Test if we own the first path
+	beq.w	gemdos_pass             ; Pass if not owned
+
+	move.l	d2,a2                   ; a2 = drive of path 1
+
+	lea	Frename.to(a3),a0       ;
+	bsr.w	ownpath                 ; Test if we own the second path
+	beq.w	gemdos_pass             ; Pass if not owned
+
+	move.l	a2,d1                   ; Test if the 2 paths
+	cmp.b	d1,d2                   ; are on the same drive
+	beq.b	.samedr                 ;
+
+	moveq	#ENSAME,d0              ; Not the same drive !
+	bra.w	gemdos_exit_long        ; Return an error.
+
+.samedr	move.l	Frename.from(a3),a0     ; Copy the first path to the DMA buffer
+	strncpy	globals+blkbuf+FrenameW.from(pc),(a0),#FrenameW.path...
+
+	move.l	Frename.to(a3),a0       ; Copy the second path to the buffer
+	strncpy	globals+blkbuf+FrenameW.to(pc),(a0),#FrenameW.path...
+
+	move.w	d2,d0                   ; Set drive for the write command
+	move.w	(a3),d1                 ; Set GEMDOS command
+	bsr.w	fsmount_write_command   ; Send the write command
+
+	bra.w	gemdos_exit             ; Return
 
 ; vim: ff=dos ts=8 sw=8 sts=8 noet

@@ -62,6 +62,8 @@ Status FsMount::writeCommand(uint8_t *data, int command) {
       return writeFsfirst((FsfirstW *)data);
     case GD_FSNEXT:
       return writeFsnext((DTA *)data);
+    case GD_FRENAME:
+      return writeFrename((const FrenameW *)data);
   }
   return ASTB_ERR;
 }
@@ -312,6 +314,46 @@ Status FsMount::readFsfirstNext(DTA *dta) {
   }
 
   return ASTB_ENMFIL;
+}
+
+Status FsMount::writeFrename(const FrenameW *data) {
+  fsDbgl("Frename from=", data->from, " to=", data->to);
+
+  TinyPath fromPath = curPath;
+  TinyPath toPath = curPath;
+
+  // Get source path
+  if(!fromPath.set(*vol, data->from))
+    return ASTB_EPTHNF;
+
+  // Get target directory path
+  if(!toPath.set(*vol, data->to, -1))
+    return ASTB_EPTHNF;
+
+  // TinyPath::pattern contains the name of the target file
+  char toName[52];
+  toPath.patternToUnicode(toName, 52);
+
+  TinyFile fromFile;
+  AcsiFile from = *fromFile.open(*vol, fromPath, O_RDWR);
+  if(!from) {
+    fsDbgl("Cannot open source file");
+    return ASTB_EACCDN;
+  }
+
+  TinyFile toFile;
+  AcsiFile toParent = *toFile.open(*vol, toPath);
+  if(!toParent) {
+    fsDbgl("Cannot open target directory");
+    return ASTB_EACCDN;
+  }
+
+  if(!from.rename(&toParent, toName)) {
+    fsDbgl("Cannot rename the file");
+    return ASTB_EACCDN;
+  }
+
+  return AST_OK;
 }
 
 bool FsMount::attribsMatch(AcsiFile *f, uint8_t flags) {

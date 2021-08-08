@@ -3,26 +3,32 @@ How to use ACSI2STM
 
 This quick start guide will explain how to use an aready working ACSI2STM unit.
 
-There are 2 ways to use ACSI2STM: using floppy images or as a hard drive. Floppy images are easier to work with but have
-limitations. See [FloppyEmulator](FloppyEmulator.md) if you are interested.
-
 Using a hard drive on the Atari requires a hard drive driver. The following drivers are known to work:
 
  * The integrated driver. Still experimental.
  * The original AHDI driver. This has a lot of limitations, you should avoid it.
  * The ICD PRO drivers. It formats hard drives to the Atari format.
  * The [Peter Putnik ACSI driver](https://atari.8bitchip.info/astams.php). It allows using standard FAT partitions.
+   Disabling ACSI_DRIVER is recommended.
 
 
 Using the integrated driver
 ---------------------------
 
- * Format a SD card with either FAT16, FAT32 or EXFAT.
- * Make sure it's not bootable by the Atari (wipe its boot sector if necessary)
+ * Format a SD card with either FAT16, FAT32 or EXFAT. There is no size limit.
+ * (optional) Make sure it's not bootable by the Atari: wipe its boot sector if necessary.
  * Insert the SD card into the reader.
  * Boot the ST, the ACSI2STM driver should load and your SD cards will appear as C:, D:, ... drives.
 
-Note: If you have a hard drive driver that mounts FAT16 SD cards such as P. Putnik's, it may conflict with the GEMDOS driver. Wipe the boot sector to make sure to load the ACSI2STM driver.
+Notes:
+
+ * This driver is highly experimental.
+ * Running programs is still not supported.
+ * If you have a hard drive driver that mounts FAT16 SD cards such as P. Putnik's, it may conflict with the GEMDOS driver. Wipe the
+   boot sector to make sure to load the ACSI2STM driver.
+ * You can use a SD card both as a GEMDOS drive and use floppy images at the same time. See [FloppyEmulator](FloppyEmulator.md)
+ * You cannot mount a hard drive image as a GEMDOS drive. If your drive contains a hard drive image, filesystem will show the whole
+   SD card while raw disk access will show the content of the image. This configuration is not recommended.
 
 
 Creating a bootable hard drive with Peter Putnik's driver
@@ -45,9 +51,6 @@ Creating a bootable hard drive with ICD PRO drivers
 
 Download a floppy disk of ICD PRO drivers. They are available online as ST floppy images. Transfer it to a real floppy your ST can
 read.
-
-*WARNING*: The floppy emulator will work, but some partition operations will fail once the drive is made bootable.
-See [FloppyEmulator](FloppyEmulator.md) for details.
 
  * Run ICDFMT.PRG from the floppy.
    * Select the hard drive you wish to format in the list.
