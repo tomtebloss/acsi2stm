@@ -1,4 +1,24 @@
-*EXPERIMENTAL BRANCH - WORK IN PROGRESS*
+**EXPERIMENTAL BRANCH - WORK IN PROGRESS**
+
+Known issues on the integrated driver:
+ * Mounting/overlay logic needs a full revamp.
+ * Need to test the TOS loader correctly.
+
+Known issues on the filesystem engine:
+ * Fsfirst/Fsnext don't work well when creating/deleting files: Breaks recursive directory operations.
+ * Pexec is not supported: you can't execute programs from the filesystem.
+ * File descriptors are lost/reset when rescanning drives.
+ * Filesystem access is very slow, code needs a lot of optimizations.
+
+Known issues on the floppy emulator:
+ * Low level access is not good. Formatting and low level copy doesn't work.
+ * SD card hot swapping does not always work well.
+
+Feature wish list:
+ * RTC support (only needs a battery on the STM32).
+ * Automatic drive desktop icon installation for TOS < 2.xx.
+ * Dynamic floppy image mounting by hooking Pexec (and DESKTOP.INF auto patching).
+
 
 ACSI2STM: Atari ST ACSI hard drive emulator
 ===========================================
