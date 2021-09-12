@@ -4,14 +4,17 @@ PCB for combining bluepill, microSD card reader and DB19 connector
 
 ---
 
-<img title="Back side of soldered board" width="300rem" align="right" src="images/ACSI2STM_v1.2_back.jpg"><img title="Front side of soldered board" width="300rem" align="right"  src="images/ACSI2STM_v1.2_front.jpg">
+<img title="Back side of soldered board" width="280rem" align="right" src="images/ACSI2STM_v1.2_back.jpg"><img title="Front side of soldered board" width="280rem" align="right"  src="images/ACSI2STM_v1.2_front.jpg">
 
 This PCB was only made for me and the goal was to get a small PCB made with everything on it. A few people asked if I could make it public. So it is a "work in progress". There is no way to change ID at the moment, but I have plans to make a new PCB to change ID on the unit between 0-4. Right now the ID is fixed to ID0. There is also some components not needed for this project but was present on the bluepill.
 
 ---
 
-<img title="Bottom side of bluepill PCB" width="400rem" src="images/bluepill_bottom_with_text.jpg"><img title="Bottom side of bluepill PCB" width="400rem" src="images/bluepill_bottom_with_text.jpg">
-
+<h1 align="center">
+ <img title="Bottom side of bluepill PCB" width="400rem" align="left" src="images/bluepill_bottom_with_text.jpg">
+ <img title="Bottom side of bluepill PCB" width="400rem" align="right" src="images/bluepill_bottom_with_text.jpg">
+</h1>
+ 
 - Some parts can be be used from the [bluepill] board. Most of the passive part on the [bluepill] is 0603 and although they could have been used on the new board, I opted to use 0805 for everything for easier soldering. They are cheap anyway. If you program the STM32 on the [bluepill] board before you desolder it you can leave the 4 pins.
   * USB connector can probably fit on the new board. But you have to cut of the small plastic pegs underneath. I used new connector on mine.
   * 8MHz crystal.
@@ -32,7 +35,7 @@ This PCB was only made for me and the goal was to get a small PCB made with ever
 
 ---
 
-<img title="Speed test with AHPT94" width="800rem" src="images/Speedtest_with_AHPT94.jpg">
+<img title="Speed test with AHPT94" width="500rem" src="images/Speedtest_with_AHPT94.jpg">
 
 
 
