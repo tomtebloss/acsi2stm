@@ -15,7 +15,7 @@ This PCB was only made for me and the goal was to get a small PCB made with ever
 ## "bluepill"
 
 <h1 align="center">
- <img title="Bottom side of bluepill PCB" width="500rem" src="images/bluepill_bottom_with_text.jpg">
+ <img title="Top side of bluepill PCB" width="500rem" src="images/bluepill_top_with_text.jpg">
  <img title="Bottom side of bluepill PCB" width="500rem" src="images/bluepill_bottom_with_text.jpg">
 </h1>
  
