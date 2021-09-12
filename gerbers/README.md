@@ -19,7 +19,8 @@ This PCB was only made for me and the goal was to get a small PCB made with ever
  <img title="Bottom side of bluepill PCB" width="500rem" src="images/bluepill_bottom_with_text.jpg">
 </h1>
  
-- Some parts can be be used from the [bluepill] board. Most of the passive part on the bluepill is 0603 and although they could have been used on the new board, I opted to use 0805 for everything for easier soldering. They are cheap anyway. All components can however be order individually, you don't have to use a scavange a bluepill.
+Some parts can be be used from the [bluepill] board. Most of the passive part on the bluepill is 0603 and although they could have been used on the new board, I opted to use 0805 for everything for easier soldering. They are cheap anyway. All components can however be order individually, you don't have to use a scavange a bluepill.
+
   * USB connector can probably fit on the new board. But you have to cut of the small plastic pegs underneath. I used new connector on mine.
   * 8MHz crystal.
   * 2x3 pinheader (and associated jumper).
