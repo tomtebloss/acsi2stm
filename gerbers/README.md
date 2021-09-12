@@ -19,7 +19,7 @@ This PCB was only made for me and the goal was to get a small PCB made with ever
  <img title="Bottom side of bluepill PCB" width="500rem" src="images/bluepill_bottom_with_text.jpg">
 </h1>
  
-- Some parts can be be used from the [bluepill] board. Most of the passive part on the [bluepill] is 0603 and although they could have been used on the new board, I opted to use 0805 for everything for easier soldering. They are cheap anyway. 
+- Some parts can be be used from the [bluepill] board. Most of the passive part on the bluepill is 0603 and although they could have been used on the new board, I opted to use 0805 for everything for easier soldering. They are cheap anyway. All components can however be order individually, you don't have to use a scavange a bluepill.
   * USB connector can probably fit on the new board. But you have to cut of the small plastic pegs underneath. I used new connector on mine.
   * 8MHz crystal.
   * 2x3 pinheader (and associated jumper).
@@ -32,7 +32,7 @@ This PCB was only made for me and the goal was to get a small PCB made with ever
 
 ---
 
-## Howto
+## Useful info
 
 - <img title="Cut down a DB25" width="400rem" align="right" src="images/DB25_and_how_to_cut.jpg"> Use only one 3.3V LDO regulator. If you don't use the LDO from the bluepill there is a SOT-23 footprint on the other side (IC3) that can be used. 
 - Battery connector, 32,768KHz crystal (Y3), capacitor is not used (C9 and C12).
