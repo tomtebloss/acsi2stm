@@ -3,11 +3,11 @@ PCB for combining bluepill, microSD card reader and DB19 connector
 </h1>
 
 ---
-
+<table>
 <img title="Back side of soldered board" width="320rem" align="right" src="images/ACSI2STM_v1.2_back.jpg"><img title="Front side of soldered board" width="320rem" align="right"  src="images/ACSI2STM_v1.2_front.jpg">
 
 This PCB was only made for me and the goal was to get a small PCB made with everything on it. A few people asked if I could make it public. So it is a "work in progress". There is no way to change ID at the moment, but I have plans to make a new PCB to change ID on the unit between 0-4. Right now the ID is fixed to ID0. There is also some components not needed for this project but was present on the bluepill.
-
+</table>
 
 
 
