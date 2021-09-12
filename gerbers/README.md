@@ -32,16 +32,22 @@ This PCB was only made for me and the goal was to get a small PCB made with ever
 
 ---
 
+## Howto
+
 - Use only one 3.3V LDO regulator. If you don't use the LDO from the bluepill there is a SOT-23 footprint on the other side (IC3) that can be used. 
 - Battery connector, 32,768KHz crystal (Y3), capacitor is not used (C9 and C12).
-- For programming the STM32 use the `3.3V`, `GND`, `PA9` and `PA10` with a [FTDI programmer] (with 3V3 on VCC pin). Set BOOT0 to 1 with the jumper. Reset switch is probably needed as well when programming. Download [STM32CubeProgrammer] and upload the v2.1 [binary] firmware on the STM32.
+- For programming the STM32 use the `3V3`, `GND`, `PA9` and `PA10` with a [FTDI programmer] (with 3V3 on VCC pin). Set `BOOT0` to 1 with the jumper. Reset switch is probably of use as well when programming. Download [STM32CubeProgrammer] and upload the v2.1 [binary] firmware to the STM32.
 - <img title="Cut down a DB25" width="400rem" align="right" src="images/DB25_and_how_to_cut.jpg"> I made the PCB to use 19 pin D-SUB connector and solder it directly into the PCB. They can be pricy to get hold of so I made my own out of 25 pin D-SUB connector insted. The solder end don't go that far into the PCB so don't force it in and try to get it flush. There should be a gap.
 
 ---
 
+## Speed test
+
+I used [AHPT] by P.Putnik to test the units speed. Here you can download [AHPT94.ZIP] directly.
+
 <img title="Speed test with AHPT94" width="500rem" src="images/Speedtest_with_AHPT94.jpg">
 
-
+---
 
 PCB made by [DoG] in Eagle v9.6.2.
 
