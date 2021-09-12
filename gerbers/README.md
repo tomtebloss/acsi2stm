@@ -8,6 +8,8 @@ This PCB was only made for me and the goal was to get a small PCB made with ever
 
 <img title="Back side of soldered board" width="400rem" align="left" src="images/ACSI2STM_v1.2_back.jpg"><img title="Front side of soldered board" width="400rem" align="right" src="images/ACSI2STM_v1.2_front.jpg">
 
+---
+
 <img title="Bottom side of bluepill PCB" width="400rem" align="left" src="images/bluepill_bottom_with_text.jpg">
 <img title="Bottom side of bluepill PCB" width="400rem" align="right" src="images/bluepill_bottom_with_text.jpg">
 
