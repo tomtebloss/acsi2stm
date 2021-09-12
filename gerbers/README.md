@@ -8,7 +8,7 @@ PCB for combining bluepill, microSD card reader and DB19 connector
 
 ## History
 
-This PCB was only made for me and the goal was to get a small PCB made with everything on it. A few people asked if I could make it public. So it is a "work in progress". There is no way to change ID at the moment, but I have plans to make a new PCB to change ID on the unit between 0-4. Right now the ID is fixed to ID0. There is also some components not needed for this project but was present on the bluepill. So download the zip with the gerbers and order your PCB from your favourite PCB manufactor. 
+This PCB was only made for me and the goal was to get a small PCB made with everything on it. A few people asked if I could make it public. So it is a "work in progress". There is no way to change ID at the moment, but I have plans to make a new PCB to change ID on the unit between 0-4. Right now the ID is fixed to ID0. There is also some components not needed for this project but was present on the bluepill. So download the zip with the gerbers and order your board from your favourite PCB manufactor. 
 
 ---
 
@@ -49,7 +49,7 @@ I used [AHPT] by P.Putnik to test the units speed. Here you can download [AHPT94
 
 ---
 
-Bill of material for this is listed in the ACSI2STM vx.x BOM.txt
+Bill of material for this is listed in the `ACSI2STM vx.x BOM.txt`
 
 PCB made by [DoG] in Eagle v9.6.2.
 
