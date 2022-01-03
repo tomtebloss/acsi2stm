@@ -39,7 +39,7 @@ Some parts can be be used from the [bluepill] board. Most of the passive part on
 - Battery connector, 32,768KHz crystal (Y3), capacitor is not used (C9 and C12).
 - For programming the STM32 use the `3V3`, `GND`, `PA9` and `PA10` with a [FTDI programmer] (with 3V3 on VCC pin). Set `BOOT0` to 1 with the jumper. Reset switch is probably of use as well when programming. Download [STM32CubeProgrammer] and upload the v2.1 [binary] firmware to the STM32. <strong>20220103: I updated the binary to get it working better as discussed in issue 16. I used 18 MHz but also did a version with 8MHz.</strong>
 - I made the PCB to use 19 pin D-SUB connector and solder it directly into the PCB. They can be pricy to get hold of so I made my own out of 25 pin D-SUB connector insted. The solder end don't go that far into the PCB so don't force it in and try to get it flush. There should be a gap.
-- <strong>20220103:I could never get the unit to autoboot with HDDriver. But EmuTOS detected it and autobooted. Also P.Putniks HD driver autobooted. Tried in TOS v2.06, TOS v1.04 (with IDE patch from Christian Zietz) and EmuTOS v1.</strong>
+- <strong>20220103: I could never get the unit to autoboot with HDDriver. But EmuTOS detected it and autobooted. Also P.Putniks HD driver autobooted. Tried in TOS v2.06, TOS v1.04 (with IDE patch from Christian Zietz) and EmuTOS v1.</strong>
 
 ---
 
