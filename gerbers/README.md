@@ -63,5 +63,5 @@ PCB made by [DoG] in Eagle v9.6.2.
 [AHPT]: https://atari.8bitchip.info/ahpt.html
 [AHPT94.ZIP]: https://atari.8bitchip.info/AHPT9.ZIP
 [DoG]: https://www.exxoshost.co.uk/forum/memberlist.php?mode=viewprofile&u=255
-[issue16]: https://github.com/retro16/acsi2stm/issues/16
+[issue 16]: https://github.com/retro16/acsi2stm/issues/16
 [IDE patch]: https://github.com/czietz/ideboot
