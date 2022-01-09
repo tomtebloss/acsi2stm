@@ -45,7 +45,7 @@ Some parts can be be used from the [bluepill] board. Most of the passive part on
 
 ## Speed test
 
-I used [AHPT] by P.Putnik to test the units speed. Here you can download [AHPT94.ZIP] directly. <strong>Speed test below is not accurate anymore since new [binary] was made 20220103.</strong>
+I used [AHPT] by P.Putnik to test the units speed. Here you can download [AHPT94.ZIP] directly. <strong>Updated speed test 20220103.</strong>
 
 <img title="Speed test with AHPT94" width="500rem" src="images/Speedtest_with_AHPT94.jpg">
 
