@@ -51,7 +51,7 @@ I used [AHPT] by P.Putnik to test the units speed. Here you can download [AHPT94
 
 ---
 
-Bill of material for this is listed in the `ACSI2STM vx.x BOM.txt`
+Bill of material for this is listed in the <a href="https://github.com/tomtebloss/acsi2stm/blob/master/gerbers/ACSI2STM%20v1.2%20BOM.txt">`ACSI2STM vx.x BOM.txt`</a> 
 
 PCB made by [DoG] in Eagle v9.6.2.
 
