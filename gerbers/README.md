@@ -8,7 +8,7 @@ PCB for combining bluepill, microSD card reader and DB19 connector
 
 ## History
 
-This PCB was only made for me and the goal was to get a small PCB made with everything on it. A few people asked if I could make it public. So it is a "work in progress". There is no way to change ID at the moment, but I have plans to make a new PCB to change ID on the unit between 0-4. Right now the ID is fixed to ID0. There is also some components not needed for this project but was present on the bluepill. So download the zip with the gerbers and order your board from your favourite PCB manufactor. 
+This PCB was only made for me and the goal was to get a small PCB made with everything on it. A few people asked if I could make it public. So it is a "work in progress". There is no way to change ID at the moment, but I have plans to make a new PCB to change ID on the unit between 0-4. Right now the ID is fixed to ID0. There is also some components not needed for this project but was present on the bluepill. So download the zip with the gerbers and order your board from your favourite PCB manufactor. Based on the [bluepill schematics]. 
 
 ---
 
@@ -19,7 +19,7 @@ This PCB was only made for me and the goal was to get a small PCB made with ever
  <img title="Bottom side of bluepill PCB" width="500rem" src="images/bluepill_bottom_with_text.jpg">
 </h1>
  
-Some parts can be be used from the [bluepill] board. Most of the passive part on the bluepill is 0603 and although they could have been used on the new board, I opted to use 0805 for everything for easier soldering. They are cheap anyway. All components can however be order individually, you don't have to scavange parts from a bluepill. <strong>20220403: R3 and R4 changed to 10K. BOM updated.</strong>
+Some parts can be be used from the [bluepill] board. Most of the passive part on the bluepill is 0603 and although they could have been used on the new board, I opted to use 0805 for everything for easier soldering. They are cheap anyway. All components can however be order individually, you don't have to scavange parts from a bluepill. <strong>20220423: [R10 changed to 1.5K]. BOM updated.</strong>
 
   * USB connector can probably fit on the new board. But you have to cut of the small plastic pegs underneath. I used new connector on mine.
   * 8MHz crystal.
@@ -65,3 +65,5 @@ PCB made by [DoG] in Eagle v9.6.2.
 [DoG]: https://www.exxoshost.co.uk/forum/memberlist.php?mode=viewprofile&u=255
 [issue 16]: https://github.com/retro16/acsi2stm/issues/16
 [IDE patch]: https://github.com/czietz/ideboot
+[bluepill schematics] https://stm32-base.org/assets/pdf/boards/original-schematic-STM32F103C8T6-Blue_Pill.pdf
+[R10 changed to 1.5K] https://stm32-base.org/boards/STM32F103C8T6-Blue-Pill.html
