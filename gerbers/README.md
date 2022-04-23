@@ -65,5 +65,5 @@ PCB made by [DoG] in Eagle v9.6.2.
 [DoG]: https://www.exxoshost.co.uk/forum/memberlist.php?mode=viewprofile&u=255
 [issue 16]: https://github.com/retro16/acsi2stm/issues/16
 [IDE patch]: https://github.com/czietz/ideboot
-[bluepill schematics] https://stm32-base.org/assets/pdf/boards/original-schematic-STM32F103C8T6-Blue_Pill.pdf
-[R10 changed to 1.5K] https://stm32-base.org/boards/STM32F103C8T6-Blue-Pill.html
+[bluepill schematics]: https://stm32-base.org/assets/pdf/boards/original-schematic-STM32F103C8T6-Blue_Pill.pdf
+[R10 changed to 1.5K]: https://stm32-base.org/boards/STM32F103C8T6-Blue-Pill.html
